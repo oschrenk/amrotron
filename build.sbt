@@ -1,4 +1,4 @@
-name := "sparkplug"
+name := "amrotron"
 
 organization := "com.oschrenk"
 
