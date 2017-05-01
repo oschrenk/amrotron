@@ -33,7 +33,7 @@ object Cli extends App with LazyLogging {
         val lines = Source.fromFile(file.getCanonicalFile, "utf-8").getLines.toSeq
         Transaction.print(lines)
       }
-    case None => _
+    case None => ()
   }
 }
 

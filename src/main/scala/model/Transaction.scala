@@ -5,6 +5,8 @@ import kantan.csv.ops._
 
 import scala.util.Try
 
+import scala.util.hashing.{ MurmurHash3 => MH3 }
+
 object Details {
   private val PointPrefix = 6
   private val NumberLength = 3 + 6
@@ -120,7 +122,15 @@ object Row {
   //111111111	EUR	20170103	14270,21	10000,21	20170103	-4270,00	SEPA Acceptgirobetaling          IBAN: NL86INGB1111111111        BIC: INGBNL2A                    Naam: Belastingsdienst          Betalingskenm.: 2222222222222222
   implicit val rowDecoder: RowDecoder[Row] = RowDecoder.decoder(0, 1, 2, 3, 4, 6, 7)(Row.apply)
 }
-case class Row(account: String, currency: String, date: String, before: String, after: String, amount: String, description: String)
+case class Row(account: String, currency: String, date: String, before: String, after: String, amount: String, description: String) {
+  def hash(): String = {
+    val value =
+      MH3.stringHash(account) +
+      17* MH3.stringHash(date) +
+      37 * MH3.stringHash(amount)
+    value.toHexString
+  }
+}
 
 object Transaction {
   def parse(line: String): Option[Transaction] = {
@@ -133,7 +143,8 @@ object Transaction {
         val currency = row.currency
         println(s"before: $line")
         val details = Details.parse(row.description)
-        val t = Transaction(date, account, amount, currency, details.right.get)
+        val hash = row.hash()
+        val t = Transaction(date, account, amount, currency, details.right.get, hash)
 
         println(s"Success: $t")
         Some(t)
@@ -150,4 +161,4 @@ object Transaction {
   }
 }
 
-case class Transaction(date: String, account: String, currency: String, amount: String, details: Details)
+case class Transaction(date: String, account: String, currency: String, amount: String, details: Details, hash: String)
