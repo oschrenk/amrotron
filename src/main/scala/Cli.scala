@@ -1,15 +1,30 @@
-import kantan.csv._
-import kantan.csv.ops._
+import scala.io.Source
+import java.io.File
 
-final case class Transaction(account: String, currency: String, before: String, after: String, amount: String, description: String)
+import model.Transaction
+
+case class Config(input: Seq[File] = Nil)
 
 object Cli extends App {
 
-  implicit val transactionDecoder: RowDecoder[Transaction] = RowDecoder.decoder(1, 2, 3, 4, 5, 6)(Transaction.apply)
+  val parser = new scopt.OptionParser[Config]("amrotron") {
+    head("amrotron", "1.x")
 
-  val tsv = """111111111	EUR	20170103	14270,21	10000,21	20170103	-4270,00	SEPA Acceptgirobetaling          IBAN: NL86INGB1111111111        BIC: INGBNL2A                    Naam: Belastingsdienst          Betalingskenm.: 2222222222222222"""
-  val reader = tsv.asCsvReader[Transaction](rfc.withColumnSeparator('\t').withoutHeader)
-  reader.foreach(println)
+  arg[File]("<file>...")
+    .unbounded().optional()
+    .action( (x, c) => c.copy(input = c.input :+ x) )
+    .text("input files")
+  }
 
+  parser.parse(args, Config()) match {
+    case Some(config) =>
+      config.input.foreach{ file =>
+        val lines = Source.fromFile(file.getCanonicalFile, "utf-8").getLines.toSeq
+        Transaction.print(lines)
+      }
+    case None =>
+      parser.showUsage()
+  }
 }
+
 

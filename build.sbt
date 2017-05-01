@@ -11,7 +11,7 @@ libraryDependencies ++= {
   Seq(
     "com.nrinaudo" %% "kantan.csv" % kantanV,
     "com.nrinaudo" %% "kantan.csv-java8" % kantanV,
-    "com.nrinaudo" %% "kantan.csv-generic" % kantanV,
+    "com.github.scopt" %% "scopt" % "3.5.0",
     "org.scalatest" %% "scalatest" % "3.0.3" % "test"
    )
 }
