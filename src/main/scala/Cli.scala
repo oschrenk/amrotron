@@ -11,19 +11,23 @@ import scala.io.Source
 import scala.util.{Failure, Success}
 
 case class Config(
-  input: Seq[File] = Nil
+  input: Seq[File] = Nil,
+  format: String = "default"
 ) {
   private val HomeDir = Paths.get(System.getProperty("user.home"))
   val home: Path = HomeDir.resolve(".amrotron")
   val rules: Path = home.resolve("rules")
   val addressbook: Path = home.resolve("addressbook")
-  val format: String = "default"
 }
 
 object Cli extends App with LazyLogging {
 
   val parser = new scopt.OptionParser[Config]("amrotron") {
     head("amrotron", "1.x")
+
+
+    opt[String]('f', "format")
+      .action((f, c) => c.copy(format = f))
 
     arg[File]("<file>...")
       .unbounded()
@@ -64,15 +68,17 @@ object Cli extends App with LazyLogging {
       }
       val addresses: Map[String, String]  =
         if (posssibleAddresses.nonEmpty) posssibleAddresses.reduce(_ ++ _)  else Map.empty
-
       logger.info(s"${addresses.size} address book entries")
+
+      // print config
+      println(config)
 
       // read and transform input
       config.input.foreach{ file =>
         val lines = Source.fromFile(file.getCanonicalFile, "utf-8").getLines.toSeq
         val (errors, parsed) = Row.parse(lines)
         errors.foreach(e => logger.error(s"malformed entry: $e"))
-        val formatter = Formatters.from("default")
+        val formatter = Formatters.from(config.format)
         parsed.map(p => transformer.apply(p)).foreach(t => println(formatter(t, addresses)))
       }
     case None => ()

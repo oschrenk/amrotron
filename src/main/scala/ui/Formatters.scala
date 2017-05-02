@@ -1,8 +1,11 @@
 package ui
 
 import java.time.format.DateTimeFormatter
-import scala.Console.{GREEN, RED, RESET}
+
 import model._
+import rules.Taxes
+
+import scala.Console.{GREEN, RED, RESET}
 
 object Direction {
   // TODO what todo with 0, is that even possible?
@@ -17,6 +20,7 @@ case object Outgoing extends Direction
 object Formatters {
 
   def from(format: String): (Transaction, Map[String, String]) => String = format match {
+    case "csv" => csv
     case _ => pretty
   }
 
@@ -57,4 +61,16 @@ object Formatters {
     s"$day: $message"
   }
 
+  val csv: (Transaction, Map[String, String]) => String = (t: Transaction, addressbook: Map[String, String]) => {
+    def quote(s: String) = { "\"" + s + "\"" }
+    val account = quote(t.account)
+    val amount = quote(t.amount.toString())
+    // TODO depends on tags
+    val deductable = quote(t.amount.toString())
+    // TODO depends on tags
+    val tax = quote(Taxes.vat(t.amount).toString())
+    val tags = quote(t.tags.mkString(","))
+
+    s"$account,$amount,$deductable,$tax,$tags"
+  }
 }
