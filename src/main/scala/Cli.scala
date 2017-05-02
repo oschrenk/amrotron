@@ -16,6 +16,7 @@ case class Config(
   private val HomeDir = Paths.get(System.getProperty("user.home"))
   val home: Path = HomeDir.resolve(".amrotron")
   val rules: Path = home.resolve("rules")
+  val addressbook: Path = home.resolve("addressbook")
   val format: String = "default"
 }
 
@@ -36,9 +37,10 @@ object Cli extends App with LazyLogging {
         logger.info("Creating empty rules")
         Files.createDirectories(config.home)
         Files.createFile(config.rules)
+        Files.createFile(config.addressbook)
       }
 
-      // read configuration
+      // read rules
       val fmt = new ErrorFormatter(showTraces = true)
       val rules = Source.fromFile(config.rules.toFile.getCanonicalFile, "utf-8").getLines.map{ line =>
         val dslParser = new DslParser(line)
@@ -53,13 +55,25 @@ object Cli extends App with LazyLogging {
       }.toSeq
       val transformer = new Transformer(rules)
 
+      // read addressbook
+      val posssibleAddresses = Source.fromFile(config.addressbook.toFile.getCanonicalFile, "utf-8").getLines.map { line =>
+        val values =line.split("=")
+        val iban = values.head.toUpperCase()
+        val description = values.tail.head
+        Map(iban -> description)
+      }
+      val addresses: Map[String, String]  =
+        if (posssibleAddresses.nonEmpty) posssibleAddresses.reduce(_ ++ _)  else Map.empty
+
+      logger.info(s"${addresses.size} address book entries")
+
       // read and transform input
       config.input.foreach{ file =>
         val lines = Source.fromFile(file.getCanonicalFile, "utf-8").getLines.toSeq
         val (errors, parsed) = Row.parse(lines)
         errors.foreach(e => logger.error(s"malformed entry: $e"))
         val formatter = Formatters.from("default")
-        parsed.map(p => transformer.apply(p)).foreach(t => println(formatter(t)))
+        parsed.map(p => transformer.apply(p)).foreach(t => println(formatter(t, addresses)))
       }
     case None => ()
   }

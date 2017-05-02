@@ -1,7 +1,7 @@
 package ui
 
 import java.time.format.DateTimeFormatter
-import scala.Console.{BLUE, BOLD, GREEN, MAGENTA, RED, RESET}
+import scala.Console.{GREEN, RED, RESET}
 import model._
 
 object Direction {
@@ -16,7 +16,7 @@ case object Outgoing extends Direction
 
 object Formatters {
 
-  def from(format: String): (Transaction) => String = format match {
+  def from(format: String): (Transaction, Map[String, String]) => String = format match {
     case _ => pretty
   }
 
@@ -28,15 +28,15 @@ object Formatters {
   }
 
   private val DayFormatter = DateTimeFormatter.ofPattern("EEE, d. MMM")
-  val pretty: (Transaction) => String = (t: Transaction) => {
+  val pretty: (Transaction, Map[String, String]) => String = (t: Transaction, addressbook: Map[String, String]) => {
     val direction = Direction(t.amount)
     val amount = t.amount
     val day = t.date.format(DayFormatter)
     val target = t.details match {
-      case Sepa(iban, _, _, _) => iban
+      case Sepa(iban, _, _, _) => addressbook.getOrElse(iban.toUpperCase, iban)
       case Fee(name, _) => name
-      case CashPoint(_, _, description) => description
-      case PayPoint(_, _, description) => description
+      case CashPoint(_, _, text) => text
+      case PayPoint(_, _, text) => text
     }
     val currency = t.currency match {
       case s if s.equalsIgnoreCase("EUR") =>"€"

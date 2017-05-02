@@ -21,9 +21,19 @@ Configuration files live in `$HOME/.amrotron/`
 
 `$HOME/.amrotron/rules`
 
-Tag every transaction 
+Tag every transaction
 
 ```
 tag with "work"
 tag "work,foo"
+```
+
+## Address Book
+
+If you prefer human readable descriptions over IBAN numbers, you can create an
+address book at `$HOME/.amrotron/addressbook` and fill it with entries:
+
+```
+NL86INGB1111111111=Belastingdienst
+DE11111111111111111111=Paypal
 ```
