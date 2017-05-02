@@ -1,11 +1,12 @@
 package model
 
+import java.time.LocalDate
+
 import kantan.csv._
 import kantan.csv.ops._
 
 import scala.util.Try
-
-import scala.util.hashing.{ MurmurHash3 => MH3 }
+import scala.util.hashing.{MurmurHash3 => MH3}
 
 object Details {
   private val PointPrefix = 6
@@ -151,4 +152,4 @@ case class Row(account: String, currency: String, date: String, before: String, 
   }
 }
 
-case class Transaction(date: String, account: String, currency: String, amount: String, details: Details, hash: String, tags: Seq[String])
+case class Transaction(date: LocalDate, account: String, currency: String, amount: BigDecimal, details: Details, hash: String, tags: Seq[String])

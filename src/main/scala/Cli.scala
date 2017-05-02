@@ -5,6 +5,7 @@ import com.typesafe.scalalogging.LazyLogging
 import model.Row
 import org.parboiled2.{ErrorFormatter, _}
 import rules.{DslParser, Transformer}
+import ui.Formatters
 
 import scala.io.Source
 import scala.util.{Failure, Success}
@@ -15,6 +16,7 @@ case class Config(
   private val HomeDir = Paths.get(System.getProperty("user.home"))
   val home: Path = HomeDir.resolve(".amrotron")
   val rules: Path = home.resolve("rules")
+  val format: String = "default"
 }
 
 object Cli extends App with LazyLogging {
@@ -56,7 +58,8 @@ object Cli extends App with LazyLogging {
         val lines = Source.fromFile(file.getCanonicalFile, "utf-8").getLines.toSeq
         val (errors, parsed) = Row.parse(lines)
         errors.foreach(e => logger.error(s"malformed entry: $e"))
-        parsed.map(p => transformer.apply(p)).foreach(println)
+        val formatter = Formatters.from("default")
+        parsed.map(p => transformer.apply(p)).foreach(t => println(formatter(t)))
       }
     case None => ()
   }

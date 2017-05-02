@@ -1,5 +1,10 @@
 package rules
 
+import java.text.NumberFormat
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Locale
+
 import model.{Details, Row, Transaction}
 
 sealed trait Predicate {
@@ -15,16 +20,19 @@ case class Rule(tags: Seq[String], predicate: Predicate)
 
 class Transformer(rules: Seq[Rule])  {
 
+  private val DayFormatter = DateTimeFormatter.ofPattern("yyyyMMdd")
+  private val NumberFormatter = NumberFormat.getNumberInstance(Locale.GERMANY)
   private def from(row: Row): Transaction = {
-    val date = row.date
+    val date= LocalDate.parse(row.date, DayFormatter)
     val account = row.account
-    val amount = row.amount
+    // TODO use Dutch or how to parse BigDecimal with commas
+    val amount = BigDecimal(NumberFormatter.parse(row.amount).toString)
     val currency = row.currency
     // TODO push parsing to front of process
     val details = Details.parse(row.description)
     val hash = row.hash()
 
-    Transaction(date, account, amount, currency, details.right.get, hash, Nil)
+    Transaction(date, account, currency, amount, details.right.get, hash, Nil)
   }
   def apply(row: Row): Transaction = {
     rules.foldLeft(from(row)) { (t, rule) =>
