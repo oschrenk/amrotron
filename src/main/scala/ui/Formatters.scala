@@ -40,7 +40,10 @@ object Formatters {
     }
     val message = direction match {
       case Incoming => s"Got ${green(amount.toString())} from $target"
-      case Outgoing => s"Paid ${red((-amount).toString())} to $target"
+      case Outgoing => t.details match {
+        case CashPoint(_,_,_) => s"Withdrew ${red((-amount).toString())} to $target"
+        case _ => s"Paid ${red((-amount).toString())} to $target"
+      }
     }
 
     s"$day: $message"
