@@ -5,10 +5,10 @@ import model.{Details, Row, Transaction}
 sealed trait Predicate {
   def apply(row: Row): Boolean
 }
-class TruePredicate() extends Predicate {
+case class TruePredicate() extends Predicate {
   override def apply(row: Row): Boolean = true
 }
-class AccountPredicate(number: String) extends Predicate {
+case class AccountPredicate(number: String) extends Predicate {
   override def apply(row: Row): Boolean = row.account.contains(number)
 }
 case class Rule(tags: Seq[String], predicate: Predicate)
