@@ -121,44 +121,28 @@ case class Sepa(iban: String, bic: String, name: String, description: Option[Str
 object Row {
   //111111111	EUR	20170103	14270,21	10000,21	20170103	-4270,00	SEPA Acceptgirobetaling          IBAN: NL86INGB1111111111        BIC: INGBNL2A                    Naam: Belastingsdienst          Betalingskenm.: 2222222222222222
   implicit val rowDecoder: RowDecoder[Row] = RowDecoder.decoder(0, 1, 2, 3, 4, 6, 7)(Row.apply)
+
+  def parse(lines: Seq[String]): (Seq[ReadError], Seq[Row]) = {
+    // FIXME kantan csv not reading the whole file
+    lines.map { line =>
+      val iterator = line.asCsvReader[Row](rfc.withColumnSeparator('\t').withoutHeader)
+      val result = iterator.toSeq.head
+      result match {
+        case Success(row) => (Nil, Seq(row))
+        case Failure(fault) => (Seq(fault), Nil)
+      }
+    }.reduceLeft((left, right) => (left._1 ++ right._1, left._2 ++ right._2))
+  }
 }
+
 case class Row(account: String, currency: String, date: String, before: String, after: String, amount: String, description: String) {
   def hash(): String = {
     val value =
       MH3.stringHash(account) +
-      17* MH3.stringHash(date) +
+      17 * MH3.stringHash(date) +
       37 * MH3.stringHash(amount)
     value.toHexString
   }
 }
 
-object Transaction {
-  def parse(line: String): Option[Transaction] = {
-    val iterator = line.asCsvReader[Row](rfc.withColumnSeparator('\t').withoutHeader)
-    iterator.map {
-      case Success(row) =>
-        val date = row.date
-        val account = row.account
-        val amount = row.amount
-        val currency = row.currency
-        println(s"before: $line")
-        val details = Details.parse(row.description)
-        val hash = row.hash()
-        val t = Transaction(date, account, amount, currency, details.right.get, hash)
-
-        println(s"Success: $t")
-        Some(t)
-      case Failure(thing) =>
-        println(s"Failure: $thing")
-        None
-    }.toSeq.head
-  }
-
-  def print(lines: Seq[String]): Unit = {
-    lines.foreach { line =>
-     parse(line)
-    }
-  }
-}
-
-case class Transaction(date: String, account: String, currency: String, amount: String, details: Details, hash: String)
+case class Transaction(date: String, account: String, currency: String, amount: String, details: Details, hash: String, tags: Seq[String])

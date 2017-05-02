@@ -3,7 +3,8 @@ import java.io.File
 import java.nio.file.{Files, Paths}
 
 import com.typesafe.scalalogging.LazyLogging
-import model.Transaction
+import model.{Row, Transaction}
+import rules.{AccountRule, Transformer}
 
 case class Config(
   input: Seq[File] = Nil
@@ -31,7 +32,15 @@ object Cli extends App with LazyLogging {
 
       config.input.foreach{ file =>
         val lines = Source.fromFile(file.getCanonicalFile, "utf-8").getLines.toSeq
-        Transaction.print(lines)
+        val (errors, parsed) = Row.parse(lines)
+
+        val rule = AccountRule("aaa", List("work"))
+        val transformer = new Transformer(List(rule))
+
+        errors.foreach(e => logger.error(s"malformed entry: $e"))
+
+        parsed.map(p => transformer.apply(p)).foreach(println)
+
       }
     case None => ()
   }
