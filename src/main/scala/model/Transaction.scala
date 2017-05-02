@@ -1,6 +1,7 @@
 package model
 
-import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.time.{LocalDate, LocalDateTime}
 
 import kantan.csv._
 import kantan.csv.ops._
@@ -102,11 +103,13 @@ object Details {
     )
   }
 
-  private def parsePoint(raw: String): (String, String, String) = {
+  // 10.05.17/21.43
+  private val PointDateTimeformatter = DateTimeFormatter.ofPattern("dd.MM.yy/HH.mm")
+  private def parsePoint(raw: String): (String, LocalDateTime, String) = {
     //GEA   NR:S1K222   30.03.17/21.43 POSTJESWEG 98 (STEIN) AM,PAS666
     //BEA   NR:3S999W   18.02.17/18.35 MM Amsterdam Centrum AMS,PAS666
     val number = raw.substring(PointPrefix, NumberLength)
-    val date = raw.substring(NumberPrefix, DateEnd)
+    val date = LocalDateTime.parse(raw.substring(NumberPrefix, DateEnd), PointDateTimeformatter)
     val description = raw.substring(DatePrefix).split(',').head
 
     (number, date, description)
@@ -114,9 +117,9 @@ object Details {
 }
 
 sealed trait Details
-case class CashPoint(number: String, date: String, description: String) extends Details
+case class CashPoint(number: String, date: LocalDateTime, description: String) extends Details
 case class Fee(name: String, description: String) extends Details
-case class PayPoint(number: String, date: String, description: String) extends Details
+case class PayPoint(number: String, date: LocalDateTime, description: String) extends Details
 case class Sepa(iban: String, bic: String, name: String, description: Option[String]) extends Details
 
 object Row {

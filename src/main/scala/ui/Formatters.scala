@@ -38,11 +38,15 @@ object Formatters {
       case CashPoint(_, _, description) => description
       case PayPoint(_, _, description) => description
     }
+    val currency = t.currency match {
+      case s if s.equalsIgnoreCase("EUR") =>"€"
+      case s => s
+    }
     val message = direction match {
-      case Incoming => s"Got ${green(amount.toString())} from $target"
+      case Incoming => s"Got ${green(amount.toString())}$currency from $target"
       case Outgoing => t.details match {
-        case CashPoint(_,_,_) => s"Withdrew ${red((-amount).toString())} to $target"
-        case _ => s"Paid ${red((-amount).toString())} to $target"
+        case CashPoint(_,_,_) => s"Withdrew ${red((-amount).toString())}$currency to $target"
+        case _ => s"Paid ${red((-amount).toString())}$currency to $target"
       }
     }
 

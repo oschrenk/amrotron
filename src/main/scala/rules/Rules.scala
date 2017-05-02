@@ -21,17 +21,16 @@ case class Rule(tags: Seq[String], predicate: Predicate)
 class Transformer(rules: Seq[Rule])  {
 
   private val DayFormatter = DateTimeFormatter.ofPattern("yyyyMMdd")
+  // TODO use Dutch or how to parse BigDecimal with commas
   private val NumberFormatter = NumberFormat.getNumberInstance(Locale.GERMANY)
   private def from(row: Row): Transaction = {
     val date= LocalDate.parse(row.date, DayFormatter)
     val account = row.account
-    // TODO use Dutch or how to parse BigDecimal with commas
     val amount = BigDecimal(NumberFormatter.parse(row.amount).toString)
     val currency = row.currency
-    // TODO push parsing to front of process
+    // TODO push parsing to front of process to catch errors early
     val details = Details.parse(row.description)
     val hash = row.hash()
-
     Transaction(date, account, currency, amount, details.right.get, hash, Nil)
   }
   def apply(row: Row): Transaction = {
