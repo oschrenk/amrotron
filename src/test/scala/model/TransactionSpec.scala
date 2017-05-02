@@ -4,9 +4,9 @@ import org.scalatest._
 
 class TransactionSpec extends FlatSpec with Matchers {
 
-  "Transactions" should "parse single line" in {
+  "Row" should "parse single line" in {
     val row = """123456789	EUR	20170103	24000,50	20000,50	20170103	-4000,00	SEPA Acceptgirobetaling          IBAN: NL12INGB0001234567        BIC: INGBNL2A                    Naam: Belastingsdienst          Betalingskenm.: 2222222222222222"""
-    Transaction.parse(row).get.account shouldEqual "123456789"
+    Row.parse(row).right.get.account shouldEqual "123456789"
   }
 
   "Details" should "parse whitespace sepa Acceptgirobetaling with Betalingskenm." in {

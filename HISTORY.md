@@ -1,5 +1,7 @@
 # History
 
+## MT940 vs CSV
+
 ABN Amro supports multiple export options for transactions.
 
 1. MT940 
@@ -27,3 +29,35 @@ strategy.
 
 (1): `"com.prowidesoftware" % "pw-swift-core" % "SRU2016-7.8.5"`
 
+## Configuration: DSL vs JSON
+
+I played with a few variations on my head:
+
+My first idea was to create a JSON like structure and use a JSON parsing library
+to build the appropiate objects.
+
+For example:
+
+```
+// Tag every outgoing transaction that targets `<IBAN>`
+{ account: "number",
+direction: "outgoing" // negative
+to: "<IBAN>",
+tag: ["tag"] }
+```
+
+Or this:
+
+```
+// Tag every transaction which `<field>` contains `<text>`
+{ account: "number",
+direction: "outgoing",
+contains: {
+  field: "description"
+  text: "paypal"
+},
+tag: ["oschrenk", "paypal", "high"]}
+```
+
+It felt restrictive, and clumsy. Since I like PEG-parsing I went for a DSL
+ approach.

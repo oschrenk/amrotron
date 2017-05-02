@@ -2,13 +2,16 @@ package rules
 
 import model.{Details, Row, Transaction}
 
-sealed trait Rule {
-  val tags: Seq[String]
-  def applies(row: Row): Boolean
+sealed trait Predicate {
+  def apply(row: Row): Boolean
 }
-case class AccountRule(number: String, tags: Seq[String]) extends Rule {
-  override def applies(row: Row): Boolean = row.account.contains(number)
+class TruePredicate() extends Predicate {
+  override def apply(row: Row): Boolean = true
 }
+class AccountPredicate(number: String) extends Predicate {
+  override def apply(row: Row): Boolean = row.account.contains(number)
+}
+case class Rule(tags: Seq[String], predicate: Predicate)
 
 class Transformer(rules: Seq[Rule])  {
 
@@ -25,7 +28,7 @@ class Transformer(rules: Seq[Rule])  {
   }
   def apply(row: Row): Transaction = {
     rules.foldLeft(from(row)) { (t, rule) =>
-       if (rule.applies(row)) t.copy(tags = t.tags ++ rule.tags)  else t
+       if (rule.predicate.apply(row)) t.copy(tags = t.tags ++ rule.tags)  else t
     }
   }
 }
