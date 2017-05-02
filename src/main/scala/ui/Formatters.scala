@@ -42,11 +42,15 @@ object Formatters {
       case s if s.equalsIgnoreCase("EUR") =>"€"
       case s => s
     }
+    val description = t.details match {
+      case Sepa(_, _, _, Some(text)) => s" // $text"
+      case _ => ""
+    }
     val message = direction match {
-      case Incoming => s"Got ${green(amount.toString())}$currency from $target"
+      case Incoming => s"Got ${green(amount.toString())}$currency from $target$description"
       case Outgoing => t.details match {
-        case CashPoint(_,_,_) => s"Withdrew ${red((-amount).toString())}$currency to $target"
-        case _ => s"Paid ${red((-amount).toString())}$currency to $target"
+        case CashPoint(_,_,_) => s"Withdrew ${red((-amount).toString())}$currency to $target$description"
+        case _ => s"Paid ${red((-amount).toString())}$currency to $target$description"
       }
     }
 
