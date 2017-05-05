@@ -29,6 +29,34 @@ strategy.
 
 (1): `"com.prowidesoftware" % "pw-swift-core" % "SRU2016-7.8.5"`
 
+## Parsing Details
+
+Every transaction comes with it's own details and while there are only four basic
+variations, there is one variation for which you always find one edge case, when
+you think you found the right parsing technique.
+
+The four variations are:
+
+1. **Whitespace separated** Sepa or **key: text**
+2. **Slash separated** 
+3. **Internal Fee**
+4. **Cashpoint/Paypoint**
+
+### Whitespace separated Sepa
+
+I tried the following approaches:
+
+1. Splitting the text whenever I find 2 or more spaces.
+2. Splitting the text whenever I find a colon using the last word before colon
+3. Using a list of known separator keys
+
+Re 1: Of course there are examples when there is only ony space between the 
+last description, and the key of the next key/value pair.
+Re 2: Of course there are examples when there are colon inside the descriptions
+
+Re 3: Means that I can only have a whitelist of accepted keywords and will fail
+on anything else. 
+
 ## Configuration: DSL vs JSON
 
 I played with a few variations on my head:
