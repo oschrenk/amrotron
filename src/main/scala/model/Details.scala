@@ -74,10 +74,17 @@ object Details {
   }
 
   private def parseSlashSepa(raw: String): Either[String, Sepa] = {
+    val KnownKeys = Set("IBAN", "BIC", "NAME", "REMI")
     Try {
       val split = raw.substring("/TRTP/".length).split('/')
       val category = split.head
-      val map = split.tail.grouped(2).map(a => Map(a(0) -> a(1))).reduce(_ ++ _)
+      val map: Map[String, String] = split.tail.grouped(2).map{ a =>
+        val key = a(0)
+        if (KnownKeys.contains(key))
+          Map(a(0) -> a(1))
+        else
+          Map[String, String]()
+      }.reduce(_ ++ _)
 
       val iban = map("IBAN")
       val bic = map.get("BIC")
