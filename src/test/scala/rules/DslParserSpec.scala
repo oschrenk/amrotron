@@ -1,5 +1,6 @@
 package rules
 
+import model.Incoming
 import org.parboiled2.{ErrorFormatter, ParseError}
 import org.scalatest.{FlatSpec, Matchers}
 
@@ -25,9 +26,11 @@ class DslParserSpec extends FlatSpec with Matchers {
   }
 
   it should "parse tagging account predicates" in {
-    val input = """tag with "foo,bar" if account contains "123""""
-    parse(input) shouldEqual Rule(List("foo", "bar"), AccountPredicate("123"))
+    val input = """tag with "foo" if account contains "123""""
+    parse(input) shouldEqual Rule(List("foo"), AccountPredicate("123"))
   }
-
-
+  it should "parse tagging direction incoming predicates" in {
+    val input = """tag with "foo" if direction is incoming"""
+    parse(input) shouldEqual Rule(List("foo"), DirectionPredicate(Incoming))
+  }
 }

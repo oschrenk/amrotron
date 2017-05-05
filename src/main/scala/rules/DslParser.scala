@@ -1,5 +1,6 @@
 package rules
 
+import model.Direction
 import org.parboiled2._
 
 class DslParser(val input: ParserInput) extends Parser {
@@ -21,7 +22,13 @@ class DslParser(val input: ParserInput) extends Parser {
   }
 
   def Predicate: Rule1[Predicate] = rule {
-    Account ~ Contains ~ Quote ~ Digits ~ Quote ~> ((number) => AccountPredicate(number))
+    Account ~ Contains ~ Quote ~ Digits ~ Quote ~> ((number) => AccountPredicate(number)) |
+    Direction ~ Is ~ ActualDirection ~> ((direction) => DirectionPredicate(direction))
+  }
+
+  def ActualDirection: Rule1[Direction] = rule {
+    Incoming ~> (() => model.Incoming) |
+    Outgoing ~> (() => model.Outgoing)
   }
 
   def Action = rule {
@@ -40,11 +47,15 @@ class DslParser(val input: ParserInput) extends Parser {
   def Quote    = rule { '"' }
   def Comma    = rule { ',' }
 
-  def If       = rule { "if" }
-  def Account  = rule { "account" }
+  def If        = rule { "if" }
+  def Account   = rule { "account" }
+  def Direction = rule { "direction" }
+  def Incoming  = rule { "incoming" }
+  def Outgoing  = rule { "outgoing" }
+
   def Contains = rule { "contains" }
   def Is       = rule { "is" }
-  def Space    = rule { oneOrMore(' ') }
 
+  def Space    = rule { oneOrMore(' ') }
 }
 

@@ -7,16 +7,6 @@ import rules.Taxes
 
 import scala.Console.{GREEN, RED, RESET}
 
-object Direction {
-  // TODO what todo with 0, is that even possible?
-  def apply(n: BigDecimal): Direction = {
-    if (n < 0) Outgoing else Incoming
-  }
-}
-sealed trait Direction
-case object Incoming extends Direction
-case object Outgoing extends Direction
-
 object Formatters {
 
   def from(format: String): (Transaction, Map[String, String]) => String = format match {
