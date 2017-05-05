@@ -81,6 +81,14 @@ class TransactionSpec extends FlatSpec with Matchers {
     }
   }
 
+  it should "parse insurances" in {
+    val raw = """PAKKETVERZ. POLISNR.   222222222 MAANDPREMIE 02-16"""
+    Details.parse(raw).right.get match {
+      case Fee(name, _) => name shouldEqual "Insurance"
+      case _ => fail()
+    }
+  }
+
   it should "parse cashpoint" in {
     val raw = """GEA   NR:A1B123   10.05.17/21.43 POSTJESWEG 98 (STEIN) AM,PAS666"""
 

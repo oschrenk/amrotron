@@ -22,10 +22,12 @@ object Details {
   private val DatePrefix = DateEnd + 1
 
   def parse(raw: String): Either[String, Details] = {
+    // TODO encapsulate every parser
     raw match {
       case s if s.startsWith("SEPA") => parseWhitespaceSepa(raw)
       case s if s.startsWith("/TRTP") => parseSlashSepa(raw)
       case s if s.startsWith("ABN") => parseFee(raw)
+      case s if s.startsWith("PAKKETVERZ.") => parseInsurance(raw)
       case s if s.startsWith("GEA") => parseCashpoint(raw)
       case s if s.startsWith("BEA") => parsePaypoint(raw)
       case s => Left(s"Unknown details type: $s")
@@ -87,6 +89,22 @@ object Details {
       Left(s"Malformed Fee: $raw")
     )
   }
+
+  private def parseInsurance(raw: String): Either[String, Fee] = {
+    //PAKKETVERZ. POLISNR.   222222222 MAANDPREMIE 02-16
+    val Prefix = "PAKKETVERZ."
+    // TODO parse insurance number, and which months
+    Try {
+      val description = raw.substring(Prefix.length)
+
+      // TODO what insurance?
+      Right(Fee("Insurance", description))
+    }.toOption.getOrElse(
+      Left(s"Malformed insurance: $raw")
+    )
+  }
+
+
 
   private def parseCashpoint(raw: String): Either[String, CashPoint] = {
     Try {
