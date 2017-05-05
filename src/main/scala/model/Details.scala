@@ -5,7 +5,6 @@ import java.time.format.DateTimeFormatter
 
 import scala.util.Try
 
-
 sealed trait Details
 case class CashPoint(number: String, date: LocalDateTime, description: String) extends Details
 case class Fee(name: String, description: String) extends Details
@@ -48,12 +47,6 @@ object Details {
       }
     }
 
-    //SEPA Acceptgirobetaling          IBAN: NL86INGB1111111111        BIC: INGBNL2A                    Naam: Belastingsdienst          Betalingskenm.: 2222222222222222
-    //SEPA Overboeking                 IBAN: NL12TRIO2222222222        BIC: TRIONL2U                    Naam:Het Acme        Omschrijving: Factuur 2222222
-    //SEPA Periodieke overb.           IBAN: NL55ABNA2222222222        BIC: ABNANL2A                    Naam: J DOE                 Omschrijving: Savings
-    //SEPA Incasso algemeen eenmalig   Incassant: NL51ZZZ341203710000  Naam: ATLETIEKVERENIGING PHANOS  Machtiging: 20160609-01110-00077Omschrijving: Inschrijffgeld VU  Polderloop def                  IBAN: NL59INGB0008331840         Kenmerk: 20160609-01110-00077
-    //SEPA Incasso algemeen doorlopend Incassant: NL49IAK556886160000  Naam: IAK VOLMACHT BV            Machtiging: 69734               Omschrijving: IAK Verzekeringen  B.V..                           IBAN: NL94ABNA0244748977         Kenmerk: 19632308               Voor: J DOE
-    //SEPA Incasso algemeen doorlopend Incassant: NL49IAK556886160000  Naam: IAK VOLMACHT BV            Machtiging: 69734               Omschrijving: IAK Verzekeringen  B.V.. Zorgverzekering(en) PKTZB, SV6. Polis 1232846. Januari 201 6 t/m januari 2016              IBAN: NL94ABNA0244748977
     val Prefix = "SEPA"
     Try {
       val colonSplit = raw.split(":")
@@ -81,9 +74,6 @@ object Details {
   }
 
   private def parseSlashSepa(raw: String): Either[String, Sepa] = {
-    ///TRTP/SEPA OVERBOEKING/IBAN/DE11111111111111111111/BIC/DEUTDEFFXXX/NAME/PayPal Europe S.a.r.l. et Cie S.C.A/REMI/PAYPAL BEVEILIGINGSMAATREGEL/EREF/CCCCCCCCCCCCCCCC PAYPAL
-    ///TRTP/SEPA Incasso algemeen doorlopend/CSID/LU96ZZZ0000000000000000058/NAME/PayPal Europe S.a.r.l. et Cie S.C.A/MARF/DDDDDDDDDDDDD/REMI/1111111111111 PAYPAL/IBAN/DE11111111111111111111/BIC/DEUTDEFFXXX/EREF/1111111111111 PP AFSCHRIJVING
-    ///TRTP/Acceptgirobetaling/IBAN/NL86INGB1111111111/BIC/INGBNL2A  /NAME/Belastingsdienst/REMI/ISSUER: CUR                  REF: 3333333333333333/EREF/NOTPROVIDED
     Try {
       val split = raw.substring("/TRTP/".length).split('/')
       val category = split.head
@@ -101,7 +91,6 @@ object Details {
   }
 
   private def parseFee(raw: String): Either[String, Fee] = {
-    //ABN AMRO Bank N.V.               Debit card                  0,60
     Try {
       val split = raw.split("\\s{2,}")
       val name = split.head
@@ -114,7 +103,6 @@ object Details {
   }
 
   private def parseInsurance(raw: String): Either[String, Fee] = {
-    //PAKKETVERZ. POLISNR.   222222222 MAANDPREMIE 02-16
     val Prefix = "PAKKETVERZ."
     // TODO parse insurance number, and which months
     Try {
@@ -126,8 +114,6 @@ object Details {
       Left(s"Malformed insurance: $raw")
     )
   }
-
-
 
   private def parseCashpoint(raw: String): Either[String, CashPoint] = {
     Try {
@@ -147,11 +133,8 @@ object Details {
     )
   }
 
-  // 10.05.17/21.43
   private val PointDateTimeformatter = DateTimeFormatter.ofPattern("dd.MM.yy/HH.mm")
   private def parsePoint(raw: String): (String, LocalDateTime, String) = {
-    //GEA   NR:S1K222   30.03.17/21.43 POSTJESWEG 98 (STEIN) AM,PAS666
-    //BEA   NR:3S999W   18.02.17/18.35 MM Amsterdam Centrum AMS,PAS666
     val number = raw.substring(PointPrefix, NumberLength)
     val date = LocalDateTime.parse(raw.substring(NumberPrefix, DateEnd), PointDateTimeformatter)
     val description = raw.substring(DatePrefix).split(',').head
@@ -159,4 +142,3 @@ object Details {
     (number, date, description)
   }
 }
-
