@@ -8,7 +8,7 @@ class DetailsSpec extends FlatSpec with Matchers {
     val raw = """SEPA Acceptgirobetaling          IBAN: NL12INGB0001234567        BIC: INGBNL2A                    Naam: Belastingsdienst          Betalingskenm.: 1234567890123456"""
 
     Details.parse(raw).right.get match {
-      case Sepa(iban, _, _, _) => iban shouldEqual "NL12INGB0001234567"
+      case Sepa(_, iban, _, _, _) => iban shouldEqual "NL12INGB0001234567"
       case _ => fail()
     }
   }
@@ -17,7 +17,7 @@ class DetailsSpec extends FlatSpec with Matchers {
     val raw = """SEPA Overboeking                 IBAN: NL12INGB0001234567        BIC: ABNANL2A                    Naam: J DOE"""
 
     Details.parse(raw).right.get match {
-      case Sepa(iban, _, _, _) => iban shouldEqual "NL12INGB0001234567"
+      case Sepa(_, iban, _, _, _) => iban shouldEqual "NL12INGB0001234567"
       case _ => fail()
     }
   }
@@ -26,7 +26,7 @@ class DetailsSpec extends FlatSpec with Matchers {
     val raw = """SEPA Overboeking                 IBAN: NL12INGB0001234567        BIC: TRIONL2U                    Naam: Het Acme        Omschrijving: Factuur 1234567"""
 
     Details.parse(raw).right.get match {
-      case Sepa(iban, _, _, _) => iban shouldEqual "NL12INGB0001234567"
+      case Sepa(_, iban, _, _, _) => iban shouldEqual "NL12INGB0001234567"
       case _ => fail()
     }
   }
@@ -35,7 +35,7 @@ class DetailsSpec extends FlatSpec with Matchers {
     val raw = """SEPA Periodieke overb.           IBAN: NL12INGB0001234567        BIC: ABNANL2A                    Naam: J DOE                 Omschrijving: Savings"""
 
     Details.parse(raw).right.get match {
-      case Sepa(iban, _, _, _) => iban shouldEqual "NL12INGB0001234567"
+      case Sepa(_, iban, _, _, _) => iban shouldEqual "NL12INGB0001234567"
       case _ => fail()
     }
   }
@@ -44,7 +44,7 @@ class DetailsSpec extends FlatSpec with Matchers {
     val raw = """/TRTP/SEPA OVERBOEKING/IBAN/DE88500700100123456789/BIC/DEUTDEFFXXX/NAME/PayPal Europe S.a.r.l. et Cie S.C.A/REMI/PAYPAL BEVEILIGINGSMAATREGEL/EREF/CCCCCCCCCCCCCCCC PAYPAL"""
 
     Details.parse(raw).right.get match {
-      case Sepa(iban, _, _, _) => iban shouldEqual "DE88500700100123456789"
+      case Sepa(_, iban, _, _, _) => iban shouldEqual "DE88500700100123456789"
       case _ => fail()
     }
   }
@@ -53,7 +53,7 @@ class DetailsSpec extends FlatSpec with Matchers {
     val raw = """/TRTP/SEPA Incasso algemeen doorlopend/CSID/LU96ZZZ0000000000000000012/NAME/PayPal Europe S.a.r.l. et Cie S.C.A/MARF/DDDDDDDDDDDDD/REMI/1000123456789 PAYPAL/IBAN/DE88500700100123456789/BIC/DEUTDEFFXXX/EREF/1000123456789 PP AFSCHRIJVING"""
 
     Details.parse(raw).right.get match {
-      case Sepa(iban, _, _, _) => iban shouldEqual "DE88500700100123456789"
+      case Sepa(_, iban, _, _, _) => iban shouldEqual "DE88500700100123456789"
       case _ => fail()
     }
   }
@@ -62,7 +62,7 @@ class DetailsSpec extends FlatSpec with Matchers {
     val raw = """/TRTP/Acceptgirobetaling/IBAN/NL12INGB0001234567/BIC/INGBNL2A  /NAME/Belastingsdienst/REMI/ISSUER: CUR                  REF: 1234567890123456/EREF/NOTPROVIDED"""
 
     Details.parse(raw).right.get match {
-      case Sepa(iban, _, _, _) => iban shouldEqual "NL12INGB0001234567"
+      case Sepa(_, iban, _, _, _) => iban shouldEqual "NL12INGB0001234567"
       case _ => fail()
     }
   }
@@ -98,6 +98,24 @@ class DetailsSpec extends FlatSpec with Matchers {
 
     Details.parse(raw).right.get match {
       case PayPoint(_, _, description) => description shouldEqual "MM Amsterdam Centrum AMS"
+      case _ => fail()
+    }
+  }
+
+  it should "parse Sepa without proper delimiter between type and first key" in {
+    val raw = """SEPA Incasso algemeen doorlopend Incassant: NL49IAK556886160000  Naam: IAK VOLMACHT BV            Machtiging: 69734               Omschrijving: IAK Verzekeringen  B.V.. Zorgverzekering(en) PKTZB, SV6. Polis 1232846. Januari 201 6 t/m januari 2016              IBAN: NL12INGB0001234567"""
+
+    Details.parse(raw).right.get match {
+      case Sepa(_, iban, _, _, _) => iban shouldEqual "NL12INGB0001234567"
+      case _ => fail()
+    }
+  }
+
+  it should "parse Sepa with double space in description" in {
+    val raw = """SEPA Overboeking                 IBAN: NL12INGB0001234567        BIC: ABNANL2A                    Naam: STICHTING SWINGSTREET     Omschrijving: Level A Lindy Hop,  Oliver Schrenk"""
+
+    Details.parse(raw).right.get match {
+      case Sepa(_, iban, _, _, _) => iban shouldEqual "NL12INGB0001234567"
       case _ => fail()
     }
   }

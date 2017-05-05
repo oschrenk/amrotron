@@ -27,7 +27,7 @@ object Formatters {
     val amount = t.amount
     val day = t.date.format(DayFormatter)
     val target = t.details match {
-      case Sepa(iban, _, _, _) => addressbook.getOrElse(iban.toUpperCase, iban)
+      case Sepa(_, iban, _, _, _) => addressbook.getOrElse(iban.toUpperCase, iban)
       case Fee(name, _) => name
       case CashPoint(_, _, text) => text
       case PayPoint(_, _, text) => text
@@ -37,7 +37,7 @@ object Formatters {
       case s => s
     }
     val description = t.details match {
-      case Sepa(_, _, _, Some(text)) => s" // $text"
+      case Sepa(_, _, _, _, Some(text)) => s" // $text"
       case _ => ""
     }
     val message = direction match {

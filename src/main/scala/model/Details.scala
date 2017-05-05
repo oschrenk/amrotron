@@ -10,7 +10,7 @@ sealed trait Details
 case class CashPoint(number: String, date: LocalDateTime, description: String) extends Details
 case class Fee(name: String, description: String) extends Details
 case class PayPoint(number: String, date: LocalDateTime, description: String) extends Details
-case class Sepa(iban: String, bic: String, name: String, description: Option[String]) extends Details
+case class Sepa(category: String, iban: String, bic: Option[String], name: String, description: Option[String]) extends Details
 
 object Details {
   private val PointPrefix = 6
@@ -35,15 +35,38 @@ object Details {
   }
 
   private def parseWhitespaceSepa(raw: String): Either[String, Sepa] = {
+
+    def prefixAndLastWord(s: String): Seq[String] = {
+      val lastWordIndex = s.lastIndexOf(' ')
+      // value of last key
+      if (lastWordIndex < 0) {
+        List(s.trim)
+      } else {
+        val pre = s.substring(0, lastWordIndex)
+        val lastWord = s.substring(lastWordIndex + 1)
+        List(pre.trim, lastWord.trim)
+      }
+    }
+
     //SEPA Acceptgirobetaling          IBAN: NL86INGB1111111111        BIC: INGBNL2A                    Naam: Belastingsdienst          Betalingskenm.: 2222222222222222
     //SEPA Overboeking                 IBAN: NL12TRIO2222222222        BIC: TRIONL2U                    Naam:Het Acme        Omschrijving: Factuur 2222222
     //SEPA Periodieke overb.           IBAN: NL55ABNA2222222222        BIC: ABNANL2A                    Naam: J DOE                 Omschrijving: Savings
+    //SEPA Incasso algemeen eenmalig   Incassant: NL51ZZZ341203710000  Naam: ATLETIEKVERENIGING PHANOS  Machtiging: 20160609-01110-00077Omschrijving: Inschrijffgeld VU  Polderloop def                  IBAN: NL59INGB0008331840         Kenmerk: 20160609-01110-00077
+    //SEPA Incasso algemeen doorlopend Incassant: NL49IAK556886160000  Naam: IAK VOLMACHT BV            Machtiging: 69734               Omschrijving: IAK Verzekeringen  B.V..                           IBAN: NL94ABNA0244748977         Kenmerk: 19632308               Voor: J DOE
+    //SEPA Incasso algemeen doorlopend Incassant: NL49IAK556886160000  Naam: IAK VOLMACHT BV            Machtiging: 69734               Omschrijving: IAK Verzekeringen  B.V.. Zorgverzekering(en) PKTZB, SV6. Polis 1232846. Januari 201 6 t/m januari 2016              IBAN: NL94ABNA0244748977
+    val Prefix = "SEPA"
     Try {
-      val split = raw.trim.split("\\s{2,}").map(_.trim)
-      val typ = split.head.substring("SEPA ".length)
-      val map = split.tail.map(_.split(":")).map(l => Map(l.head.trim -> l.tail.head.trim)).reduce(_ ++ _)
-      val iban = map("IBAN")
-      val bic = map("BIC")
+      val colonSplit = raw.split(":")
+      val last = colonSplit.lastOption.get
+      val headList = colonSplit.dropRight(1)
+      val split: Seq[String] = headList.map(_.trim).flatMap(prefixAndLastWord) ++ List(last)
+
+      val category = split.head.substring(Prefix.length)
+      val map: Map[String, String] = split.tail.grouped(2).map(kv => Map(kv.head -> kv.tail.head)).reduce(_ ++ _)
+      // TODO sometimes both are there
+      val iban = map.getOrElse("IBAN", map("Incassant")).trim
+      // TODO if Incassant is present, there is no BIC
+      val bic = map.get("BIC")
       val name = map("Naam")
       val description = (map.get("Betalingskenm."), map.get("Omschrijving")) match {
         case (Some(a), _) => Some(a)
@@ -51,7 +74,7 @@ object Details {
         case (None, None) => None
       }
 
-      Right(Sepa(iban, bic, name, description))
+      Right(Sepa(category, iban, bic, name, description))
     }.toOption.getOrElse(
       Left(s"Malformed WhitespaceSepa: $raw")
     )
@@ -63,15 +86,15 @@ object Details {
     ///TRTP/Acceptgirobetaling/IBAN/NL86INGB1111111111/BIC/INGBNL2A  /NAME/Belastingsdienst/REMI/ISSUER: CUR                  REF: 3333333333333333/EREF/NOTPROVIDED
     Try {
       val split = raw.substring("/TRTP/".length).split('/')
-      val typ = split.head
+      val category = split.head
       val map = split.tail.grouped(2).map(a => Map(a(0) -> a(1))).reduce(_ ++ _)
 
       val iban = map("IBAN")
-      val bic = map("BIC")
+      val bic = map.get("BIC")
       val name = map("NAME")
       val description = map.get("REMI")
 
-      Right(Sepa(iban, bic, name, description))
+      Right(Sepa(category, iban, bic, name, description))
     }.toOption.getOrElse(
       Left(s"Malformed SlashSepa: $raw")
     )
