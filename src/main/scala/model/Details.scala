@@ -35,27 +35,27 @@ object Details {
 
   private def parseWhitespaceSepa(raw: String): Either[String, Sepa] = {
 
-    def prefixAndLastWord(s: String): Seq[String] = {
-      val lastWordIndex = s.lastIndexOf(' ')
-      // value of last key
-      if (lastWordIndex < 0) {
-        List(s.trim)
-      } else {
-        val pre = s.substring(0, lastWordIndex)
-        val lastWord = s.substring(lastWordIndex + 1)
-        List(pre.trim, lastWord.trim)
-      }
-    }
-
+    // cat TXT170504221000.TAB | grep SEPA | grep -v TRTP | grep -v BEA | grep -v GEA | egrep -o "\w+:" | sort | uniq
+    // and then manual extraction and selection, leads to
+    val KnownKeys = List("BIC:", "IBAN:", "Incassant:", "Betalingskenm.:", "Kenmerk:", "Machtiging:", "Naam:", "Omschrijving:", "Voor:")
     val Prefix = "SEPA"
     Try {
-      val colonSplit = raw.split(":")
-      val last = colonSplit.lastOption.get
-      val headList = colonSplit.dropRight(1)
-      val split: Seq[String] = headList.map(_.trim).flatMap(prefixAndLastWord) ++ List(last)
+      val positions: List[(String, Int)] = KnownKeys.map(key => (key, raw.indexOf(key))).filter{
+        case (_, pos) => pos >= 0
+      }.sortBy(_._2) :+ ("end", raw.length)
 
-      val category = split.head.substring(Prefix.length)
-      val map: Map[String, String] = split.tail.grouped(2).map(kv => Map(kv.head -> kv.tail.head)).reduce(_ ++ _)
+      val category = raw.substring(Prefix.length, positions.head._2)
+      val map = positions.sliding(2).map{ pair =>
+        val left = pair.head
+        val right = pair.tail.head
+        // trim and delete the colon
+        val key = left._1.trim.dropRight(1)
+        val from = left._2 + key.length + 1
+        val to = right._2
+        val value = raw.substring(from, to).trim
+        Map(key -> value)
+      }.reduce(_ ++ _)
+
       // TODO sometimes both are there
       val iban = map.getOrElse("IBAN", map("Incassant")).trim
       // TODO if Incassant is present, there is no BIC
