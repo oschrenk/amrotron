@@ -7,6 +7,7 @@ import org.scalatest.{FlatSpec, Matchers}
 import scala.util.{Failure, Success}
 
 class DslParserSpec extends FlatSpec with Matchers {
+
   val fmt = new ErrorFormatter(showTraces = true)
 
   def parse(line: String): Rule = {
@@ -17,9 +18,10 @@ class DslParserSpec extends FlatSpec with Matchers {
         println(s"Invalid expression: ${parser.formatError(e, fmt)}")
         throw new IllegalArgumentException("Error parsing rules")
       case Failure(e) =>
-        throw new IllegalArgumentException("Error parsing rules")
+        throw new IllegalArgumentException(s"Error parsing rules $e")
     }
   }
+
   "DslParser" should "parse default tags" in {
     val input = """tag with "foo,bar""""
     parse(input) shouldEqual Rule(List("foo", "bar"), TruePredicate())
@@ -38,5 +40,10 @@ class DslParserSpec extends FlatSpec with Matchers {
   it should "parse tagging catgory predicates" in {
     val input = """tag with "foo" if category is sepa"""
     parse(input) shouldEqual Rule(List("foo"), CategoryPredicate("sepa"))
+  }
+
+  it should "parse tagging description predicates" in {
+    val input = """tag with "foo" if description contains "hello tag""""
+    parse(input) shouldEqual Rule(List("foo"), DescriptionPredicate("hello tag"))
   }
 }

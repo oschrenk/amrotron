@@ -26,6 +26,18 @@ case class CategoryPredicate(category: String) extends Predicate {
     }
   }
 }
+case class DescriptionPredicate(needle: String) extends Predicate {
+  override def apply(row: ParsedRow): Boolean = {
+    val description = row.details match {
+      case Sepa(_, _, _, _, Some(d)) => d
+      case CashPoint(_, _, d) => d
+      case PayPoint(_, _, d) => d
+      case Fee(_, d) => d
+      case _ => ""
+    }
+    description.toLowerCase().contains(needle.toLowerCase)
+  }
+}
 
 case class Rule(tags: Seq[String], predicate: Predicate)
 

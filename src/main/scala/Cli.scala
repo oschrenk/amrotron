@@ -97,5 +97,3 @@ object Cli extends App with LazyLogging {
     case None => ()
   }
 }
-
-

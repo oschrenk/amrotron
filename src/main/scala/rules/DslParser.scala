@@ -24,7 +24,8 @@ class DslParser(val input: ParserInput) extends Parser {
   def Predicate: Rule1[Predicate] = rule {
     Account ~ Contains ~ Quote ~ Digits ~ Quote ~> ((number) => AccountPredicate(number)) |
     Direction ~ Is ~ ActualDirection ~> ((direction) => DirectionPredicate(direction)) |
-    Category ~ Is ~ ActualCategory ~> ((category) => CategoryPredicate(category))
+    Category ~ Is ~ ActualCategory ~> ((category) => CategoryPredicate(category)) |
+    Description ~ Contains ~ Quote ~ Phrase ~ Quote ~> ((needle) => DescriptionPredicate(needle))
   }
 
   def ActualDirection: Rule1[Direction] = rule {
@@ -48,6 +49,7 @@ class DslParser(val input: ParserInput) extends Parser {
   def Word   = rule { capture(oneOrMore(CharPredicate.Alpha)) ~> ((w) => w)}
   def Words  = rule { oneOrMore(Word).separatedBy(Comma) }
   def Digits = rule { capture(oneOrMore(CharPredicate.Digit)) ~> ((n) => n)}
+  def Phrase = rule { capture(oneOrMore(CharPredicate.AlphaNum ++ ' ')) ~> ((n) => n)}
 
   def Tag      = rule { "tag" }
   def With     = rule { "with" }
@@ -68,9 +70,10 @@ class DslParser(val input: ParserInput) extends Parser {
   def PayPoint  = rule { "paypoint"}
   def Fee  = rule { "fee"}
 
+  def Description = rule { "description" }
+
   def Contains = rule { "contains" }
   def Is       = rule { "is" }
 
   def Space    = rule { oneOrMore(' ') }
 }
-
