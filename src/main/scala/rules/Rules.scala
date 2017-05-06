@@ -16,6 +16,17 @@ case class DirectionPredicate(direction: Direction) extends Predicate {
     Direction.apply(row.amount).equals(direction)
   }
 }
+case class CategoryPredicate(category: String) extends Predicate {
+  override def apply(row: ParsedRow): Boolean = {
+    row.details match {
+      case _: Sepa => "sepa".equals(category)
+      case _: CashPoint => "cashpoint".equals(category)
+      case _: PayPoint => "paypoint".equals(category)
+      case _: Fee => "fee".equals(category)
+    }
+  }
+}
+
 case class Rule(tags: Seq[String], predicate: Predicate)
 
 class Transformer(rules: Seq[Rule])  {

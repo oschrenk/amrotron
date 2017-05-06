@@ -23,12 +23,20 @@ class DslParser(val input: ParserInput) extends Parser {
 
   def Predicate: Rule1[Predicate] = rule {
     Account ~ Contains ~ Quote ~ Digits ~ Quote ~> ((number) => AccountPredicate(number)) |
-    Direction ~ Is ~ ActualDirection ~> ((direction) => DirectionPredicate(direction))
+    Direction ~ Is ~ ActualDirection ~> ((direction) => DirectionPredicate(direction)) |
+    Category ~ Is ~ ActualCategory ~> ((category) => CategoryPredicate(category))
   }
 
   def ActualDirection: Rule1[Direction] = rule {
     Incoming ~> (() => model.Incoming) |
     Outgoing ~> (() => model.Outgoing)
+  }
+
+  def ActualCategory: Rule1[String] = rule {
+    Sepa ~> (() => "sepa") |
+    CashPoint ~> (() => "cashpoint") |
+    PayPoint ~> (() => "paypoint") |
+    Fee ~> (() => "fee")
   }
 
   def Action = rule {
@@ -49,9 +57,16 @@ class DslParser(val input: ParserInput) extends Parser {
 
   def If        = rule { "if" }
   def Account   = rule { "account" }
+
   def Direction = rule { "direction" }
   def Incoming  = rule { "incoming" }
   def Outgoing  = rule { "outgoing" }
+
+  def Category  = rule { "category"}
+  def Sepa  = rule { "sepa" }
+  def CashPoint  = rule { "cashpoint"}
+  def PayPoint  = rule { "paypoint"}
+  def Fee  = rule { "fee"}
 
   def Contains = rule { "contains" }
   def Is       = rule { "is" }
