@@ -76,6 +76,15 @@ class DetailsSpec extends FlatSpec with Matchers {
     }
   }
 
+  it should "parse slash sepa with slash inside description" in {
+    val raw = """/TRTP/SEPA Incasso algemeen doorlopend/CSID/NL49IAK111111111111/NAME/IAK VOLMACHT BV/MARF/11111/REMI/FBI Verzekeringen B.V.. Zorgverzekering(en) PKTZB, SV6. Polis 1111111. Mei 2017 t/m mei 2017/IBAN/NL12INGB0001234567/BIC/ABNANL2A/EREF/11111111"""
+
+    Details.parse(raw).right.get match {
+      case Sepa(_, iban, _, _, _) => iban shouldEqual "NL12INGB0001234567"
+      case _ => fail()
+    }
+  }
+
   it should "parse fees" in {
     val raw = """ABN AMRO Bank N.V.               Debit card                  0,60"""
 

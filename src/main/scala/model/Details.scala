@@ -33,6 +33,24 @@ object Details {
     }
   }
 
+
+  private def parsePositional(raw: String, Prefix: String, KnownKeys: List[String]): Map[String, String] = {
+    val positions: List[(String, Int)] = KnownKeys.map(key => (key, raw.indexOf(key))).filter{
+      case (_, pos) => pos >= 0
+    }.sortBy(_._2) :+ ("end", raw.length)
+
+    positions.sliding(2).map{ pair =>
+      val left = pair.head
+      val right = pair.tail.head
+      // trim and delete the colon
+      val key = left._1.trim.dropRight(1)
+      val from = left._2 + key.length + 1
+      val to = right._2
+      val value = raw.substring(from, to).trim
+      Map(key -> value)
+    }.reduce(_ ++ _) ++ Map("category" -> raw.substring(Prefix.length, positions.head._2))
+  }
+
   private def parseWhitespaceSepa(raw: String): Either[String, Sepa] = {
 
     // cat TXT170504221000.TAB | grep SEPA | grep -v TRTP | grep -v BEA | grep -v GEA | egrep -o "\w+:" | sort | uniq
@@ -40,22 +58,9 @@ object Details {
     val KnownKeys = List("BIC:", "IBAN:", "Incassant:", "Betalingskenm.:", "Kenmerk:", "Machtiging:", "Naam:", "Omschrijving:", "Voor:")
     val Prefix = "SEPA"
     Try {
-      val positions: List[(String, Int)] = KnownKeys.map(key => (key, raw.indexOf(key))).filter{
-        case (_, pos) => pos >= 0
-      }.sortBy(_._2) :+ ("end", raw.length)
+      val map = parsePositional(raw, Prefix, KnownKeys)
 
-      val category = raw.substring(Prefix.length, positions.head._2)
-      val map = positions.sliding(2).map{ pair =>
-        val left = pair.head
-        val right = pair.tail.head
-        // trim and delete the colon
-        val key = left._1.trim.dropRight(1)
-        val from = left._2 + key.length + 1
-        val to = right._2
-        val value = raw.substring(from, to).trim
-        Map(key -> value)
-      }.reduce(_ ++ _)
-
+      val category = map("category")
       // TODO sometimes both are there
       val iban = map.getOrElse("IBAN", map("Incassant")).trim
       // TODO if Incassant is present, there is no BIC
@@ -74,22 +79,18 @@ object Details {
   }
 
   private def parseSlashSepa(raw: String): Either[String, Sepa] = {
-    val KnownKeys = Set("IBAN", "BIC", "NAME", "REMI")
+    // only manual selection
+    val KnownKeys = List("/IBAN/", "/BIC/", "/NAME/", "/REMI/", "/CSID/", "/EREF/")
+    val Prefix = "/TRTP/"
     Try {
-      val split = raw.substring("/TRTP/".length).split('/')
-      val category = split.head
-      val map: Map[String, String] = split.tail.grouped(2).map{ a =>
-        val key = a(0)
-        if (KnownKeys.contains(key))
-          Map(a(0) -> a(1))
-        else
-          Map[String, String]()
-      }.reduce(_ ++ _)
+      val map = parsePositional(raw, Prefix, KnownKeys)
 
-      val iban = map("IBAN")
-      val bic = map.get("BIC")
-      val name = map("NAME")
-      val description = map.get("REMI")
+      val category = map("category")
+      // TODO get rid of that leading slash
+      val iban = map("/IBAN")
+      val bic = map.get("/BIC")
+      val name = map("/NAME")
+      val description = map.get("/REMI")
 
       Right(Sepa(category, iban, bic, name, description))
     }.toOption.getOrElse(
