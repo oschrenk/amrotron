@@ -40,11 +40,12 @@ object Formatters {
       case Sepa(_, _, _, _, Some(text)) => s" // $text"
       case _ => ""
     }
+    val tags = t.tags.map(tag => s"#$tag").mkString(" ")
     val message = direction match {
-      case Incoming => s"Got ${green(amount.toString())}$currency from $target$description"
+      case Incoming => s"Got ${green(amount.toString())}$currency from $target $tags$description"
       case Outgoing => t.details match {
-        case CashPoint(_,_,_) => s"Withdrew ${red((-amount).toString())}$currency to $target$description"
-        case _ => s"Paid ${red((-amount).toString())}$currency to $target$description"
+        case CashPoint(_,_,_) => s"Withdrew ${red((-amount).toString())}$currency to $target $tags$description"
+        case _ => s"Paid ${red((-amount).toString())}$currency to $target $tags$description"
       }
     }
 
