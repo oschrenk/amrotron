@@ -2,7 +2,7 @@ import java.io.File
 import java.nio.file.{Files, Path, Paths}
 
 import com.typesafe.scalalogging.LazyLogging
-import model.Row
+import model.{ParsedRow, Row}
 import org.parboiled2.{ErrorFormatter, _}
 import rules.{DslParser, Transformer}
 import ui.Formatters
@@ -73,13 +73,26 @@ object Cli extends App with LazyLogging {
       // print config
       println(config)
 
+      // TODO read and parse only if success, transform and format
       // read and transform input
       config.input.foreach{ file =>
         val lines = Source.fromFile(file.getCanonicalFile, "utf-8").getLines.toSeq
-        val (errors, parsed) = Row.parse(lines)
-        errors.foreach(e => logger.error(s"malformed entry: $e"))
+
+        // read lines
+        val (rawErrors, rawRows) = Row.parse(lines)
+        rawErrors.foreach(e => logger.error(s"malformed line: $e"))
+
+        // parse details and create types
+        val (parsedErrors, parsedRows) = ParsedRow.parse(rawRows)
+        parsedErrors.foreach(e => logger.error(s"malformed row: $e"))
+
+        // transform
         val formatter = Formatters.from(config.format)
-        parsed.map(p => transformer.apply(p)).foreach(t => println(formatter(t, addresses)))
+        parsedRows.map{ parsedRow =>
+          transformer.apply(parsedRow)
+        }.foreach{transaction =>
+          println(formatter(transaction, addresses))
+        }
       }
     case None => ()
   }

@@ -1,5 +1,7 @@
 package model
 
+import java.time.LocalDate
+
 import kantan.csv._
 import kantan.csv.ops._
 
@@ -37,3 +39,4 @@ case class Row(account: String, currency: String, date: String, before: String, 
     value.toHexString
   }
 }
+
