@@ -47,16 +47,21 @@ object Cli extends App with LazyLogging {
       // read rules
       val fmt = new ErrorFormatter(showTraces = true)
       val rules = Source.fromFile(config.rules.toFile.getCanonicalFile, "utf-8").getLines.map{ line =>
-        val dslParser = new DslParser(line)
-        dslParser.InputLine.run() match {
-          case Success(rule) => rule
-          case Failure(e: ParseError) =>
-            println(s"Invalid expression: ${dslParser.formatError(e, fmt)}")
-            throw new IllegalArgumentException("Error parsing rules")
-          case Failure(e) =>
-            throw new IllegalArgumentException("Error parsing rules")
+        // comments
+        if (line.startsWith("#") || line.trim.isEmpty) {
+          None
+        } else {
+          val dslParser = new DslParser(line)
+          dslParser.InputLine.run() match {
+            case Success(rule) => Some(rule)
+            case Failure(e: ParseError) =>
+              println(s"Invalid expression: ${dslParser.formatError(e, fmt)}")
+              throw new IllegalArgumentException("Error parsing rules")
+            case Failure(e) =>
+              throw new IllegalArgumentException("Error parsing rules")
+          }
         }
-      }.toSeq
+      }.flatten.toSeq
       val transformer = new Transformer(rules)
 
       // read addressbook
