@@ -1,3 +1,9 @@
-#!/usr/bin/env bash
+#!/bin/sh
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd $DIR
 
-sbt "run $*"
+JAVA_CMD="java"
+if ! [ -x "$(command -v drip)" ]; then
+  JAVA_CMD="drip" 
+fi
+$JAVA_CMD -jar target/scala-2.12/amrotron-assembly-*.jar $@
