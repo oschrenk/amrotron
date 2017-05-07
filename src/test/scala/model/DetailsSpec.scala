@@ -97,7 +97,7 @@ class DetailsSpec extends FlatSpec with Matchers {
   it should "parse insurances" in {
     val raw = """PAKKETVERZ. POLISNR.   111111111 MAANDPREMIE 02-16"""
     Details.parse(raw).right.get match {
-      case Fee(name, _) => name shouldEqual "Insurance"
+      case Fee(name, _) => name shouldEqual "Liability Insurance"
       case _ => fail()
     }
   }

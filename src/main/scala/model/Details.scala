@@ -116,8 +116,7 @@ object Details {
     Try {
       val description = raw.substring(Prefix.length)
 
-      // TODO what insurance?
-      Right(Fee("Insurance", description))
+      Right(Fee("Liability Insurance", description))
     }.toOption.getOrElse(
       Left(s"Malformed insurance: $raw")
     )
