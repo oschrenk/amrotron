@@ -43,7 +43,6 @@ case class Rule(tags: Seq[String], predicate: Predicate)
 
 class Transformer(rules: Seq[Rule])  {
 
-
   private def from(row: ParsedRow): Transaction = {
     val date = row.date
     val account = row.account

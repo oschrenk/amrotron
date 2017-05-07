@@ -5,7 +5,7 @@ import java.time.format.DateTimeFormatter
 import model._
 import rules.Taxes
 
-import scala.Console.{GREEN, RED, RESET}
+import scala.Console.{GREEN, RED, RESET, CYAN}
 
 object Formatters {
 
@@ -20,6 +20,11 @@ object Formatters {
   private def green(s: String) = {
     s"$RESET$GREEN$s$RESET"
   }
+
+  private def cyan(s: String) = {
+    s"$RESET$CYAN$s$RESET"
+  }
+
 
   private val DayFormatter = DateTimeFormatter.ofPattern("EEE, d. MMM")
   val pretty: (Transaction, Map[String, String]) => String = (t: Transaction, addressbook: Map[String, String]) => {
@@ -40,7 +45,7 @@ object Formatters {
       case Sepa(_, _, _, _, Some(text)) => s" // $text"
       case _ => ""
     }
-    val tags = t.tags.map(tag => s"#$tag").mkString(" ")
+    val tags = t.tags.map(tag => cyan(s"#$tag")).mkString(" ")
     val message = direction match {
       case Incoming => s"Got ${green(amount.toString())}$currency from $target $tags$description"
       case Outgoing => t.details match {
