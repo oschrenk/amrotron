@@ -25,7 +25,8 @@ class DslParser(val input: ParserInput) extends Parser {
     Account ~ Contains ~ Quote ~ Digits ~ Quote ~> ((number) => AccountPredicate(number)) |
     Direction ~ Is ~ ActualDirection ~> ((direction) => DirectionPredicate(direction)) |
     Category ~ Is ~ ActualCategory ~> ((category) => CategoryPredicate(category)) |
-    Description ~ Contains ~ Quote ~ Phrase ~ Quote ~> ((needle) => DescriptionPredicate(needle))
+    Description ~ Contains ~ Quote ~ Phrase ~ Quote ~> ((needle) => DescriptionPredicate(needle)) |
+    Iban ~ Contains ~ Quote ~ Phrase ~ Quote ~> ((iban) => IbanPredicate(iban))
   }
 
   def ActualDirection: Rule1[Direction] = rule {
@@ -64,6 +65,7 @@ class DslParser(val input: ParserInput) extends Parser {
   def Incoming  = rule { "incoming" }
   def Outgoing  = rule { "outgoing" }
 
+  def Iban = rule { "iban"}
   def Category  = rule { "category"}
   def Sepa  = rule { "sepa" }
   def CashPoint  = rule { "cashpoint"}

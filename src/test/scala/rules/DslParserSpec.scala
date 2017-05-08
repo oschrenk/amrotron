@@ -46,4 +46,9 @@ class DslParserSpec extends FlatSpec with Matchers {
     val input = """tag with "foo" if description contains "hello tag""""
     parse(input) shouldEqual Rule(List("foo"), DescriptionPredicate("hello tag"))
   }
+
+  it should "parse tagging iban predicates" in {
+    val input = """tag with "foo" if iban contains "NL123""""
+    parse(input) shouldEqual Rule(List("foo"), IbanPredicate("NL123"))
+  }
 }

@@ -39,6 +39,15 @@ case class DescriptionPredicate(needle: String) extends Predicate {
   }
 }
 
+case class IbanPredicate(iban: String) extends Predicate {
+  override def apply(row: ParsedRow): Boolean = {
+    row.details match {
+      case Sepa(_, i, _, _, _) => i.toLowerCase.contains(iban.toLowerCase)
+      case _ => false
+    }
+  }
+}
+
 case class Rule(tags: Seq[String], predicate: Predicate)
 
 class Transformer(rules: Seq[Rule])  {
