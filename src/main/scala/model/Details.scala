@@ -113,11 +113,8 @@ object Details {
   }
 
   private def parseInsurance(raw: String): Either[String, Fee] = {
-    val Prefix = "PAKKETVERZ."
     // TODO parse insurance number, and which months
     Try {
-      val description = raw.substring(Prefix.length)
-
       Right(Fee(ABN, "Liability Insurance"))
     }.toOption.getOrElse(
       Left(s"Malformed insurance: $raw")

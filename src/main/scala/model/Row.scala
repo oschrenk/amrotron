@@ -1,7 +1,5 @@
 package model
 
-import java.time.LocalDate
-
 import kantan.csv._
 import kantan.csv.ops._
 
