@@ -2,7 +2,6 @@ package model
 
 import org.scalatest.{FlatSpec, Matchers}
 
-
 class AmountSpec extends FlatSpec with Matchers {
 
   "Amount" should "parse numbers with comma as decimal separator" in {
