@@ -52,7 +52,7 @@ object Formatters {
       case Incoming => s"Got ${green(amount.toString())}$currency from $target $tags$description"
       case Outgoing => t.details match {
         case CashPoint(_,_,_) => s"Withdrew ${red((-amount).toString())}$currency to $target $tags$description"
-        case _ => s"Paid ${red((-amount).toString())}$currency to $target $tags$description"
+        case _ => s"Paid ${red((-amount).toString())} $currency to $target $tags$description"
       }
     }
 
