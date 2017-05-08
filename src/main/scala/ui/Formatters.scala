@@ -11,6 +11,7 @@ object Formatters {
 
   def from(format: String): (Transaction, Map[String, String]) => String = format match {
     case "csv" => csv
+    case "string" => string
     case _ => pretty
   }
 
@@ -70,4 +71,9 @@ object Formatters {
 
     s"$account,$amount,$deductable,$tax,$tags"
   }
+
+  val string: (Transaction, Map[String, String]) => String = (t: Transaction, addressbook: Map[String, String]) => {
+    s"$t"
+  }
+
 }
