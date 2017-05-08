@@ -4,10 +4,9 @@ import java.text.NumberFormat
 import java.util.Locale
 
 object Amount {
-  // TODO use Dutch or how to parse BigDecimal with commas
-  private val NumberFormatter = NumberFormat.getNumberInstance(Locale.GERMANY)
+  private val Netherlands = new Locale("NL", "nl")
+  private val NumberFormatter = NumberFormat.getNumberInstance(Netherlands)
   def parse(s: String): BigDecimal = {
     BigDecimal(NumberFormatter.parse(s).toString)
-
   }
 }
