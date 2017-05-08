@@ -98,10 +98,11 @@ object Details {
     )
   }
 
+  val ABN = "ABN AMRO Bank N.V."
   private def parseFee(raw: String): Either[String, Fee] = {
     Try {
       val split = raw.split("\\s{2,}")
-      val name = split.head
+      val name = ABN
       val description = split.tail.head
 
       Right(Fee(name, description))
@@ -116,7 +117,7 @@ object Details {
     Try {
       val description = raw.substring(Prefix.length)
 
-      Right(Fee("Liability Insurance", description))
+      Right(Fee(ABN, "Liability Insurance"))
     }.toOption.getOrElse(
       Left(s"Malformed insurance: $raw")
     )
