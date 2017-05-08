@@ -60,7 +60,8 @@ object Details {
     Try {
       val map = parsePositional(raw, Prefix, KnownKeys)
 
-      val category = map("category")
+      // TODO there should be ant trims here
+      val category = map("category").trim
       // TODO sometimes both are there
       val iban = map.getOrElse("IBAN", map("Incassant")).trim
       // TODO if Incassant is present, there is no BIC
