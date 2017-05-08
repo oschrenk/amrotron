@@ -35,8 +35,6 @@ object Formatters {
     case _ => pretty(rainbow)
   }
 
-
-
   private val DayFormatter = DateTimeFormatter.ofPattern("EEE, d. MMM")
   val pretty: Colorizer => ((Map[String, String], Transaction) => String) = (c: Colorizer) => (addressbook: Map[String, String], t: Transaction) => {
     val direction = Direction(t.amount)

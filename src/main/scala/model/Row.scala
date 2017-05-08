@@ -6,7 +6,6 @@ import kantan.csv.ops._
 import scala.util.hashing.{MurmurHash3 => MH3}
 
 object Row {
-  //111111111	EUR	20170103	14270,21	10000,21	20170103	-4270,00	SEPA Acceptgirobetaling          IBAN: NL86INGB1111111111        BIC: INGBNL2A                    Naam: Belastingsdienst          Betalingskenm.: 2222222222222222
   implicit val rowDecoder: RowDecoder[Row] = RowDecoder.decoder(0, 1, 2, 3, 4, 6, 7)(Row.apply)
 
   def parse(line: String): Either[ReadError, Row] = {
@@ -37,4 +36,3 @@ case class Row(account: String, currency: String, date: String, before: String, 
     value.toHexString
   }
 }
-

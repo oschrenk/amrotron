@@ -34,6 +34,6 @@ If you prefer human readable descriptions over IBAN numbers, you can create an
 address book at `$HOME/.amrotron/addressbook` and fill it with entries:
 
 ```
-NL86INGB1111111111=Belastingdienst
-DE11111111111111111111=Paypal
+NL86INGB0002445588=Belastingdienst
+DE88500700100175526303=Paypal
 ```
