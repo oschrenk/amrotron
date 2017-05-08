@@ -27,6 +27,11 @@ class DslParserSpec extends FlatSpec with Matchers {
     parse(input) shouldEqual Rule(List("foo", "bar"), TruePredicate())
   }
 
+  it should "parse tags with spaces" in {
+    val input = """tag with "foo,  bar""""
+    parse(input) shouldEqual Rule(List("foo", "bar"), TruePredicate())
+  }
+
   it should "parse tagging account predicates" in {
     val input = """tag with "foo" if account contains "123""""
     parse(input) shouldEqual Rule(List("foo"), AccountPredicate("123"))

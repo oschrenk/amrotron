@@ -48,7 +48,7 @@ class DslParser(val input: ParserInput) extends Parser {
   def Tags   = rule { Quote ~ Words ~ Quote }
 
   def Word   = rule { capture(oneOrMore(CharPredicate.Alpha)) ~> ((w) => w)}
-  def Words  = rule { oneOrMore(Word).separatedBy(Comma) }
+  def Words  = rule { oneOrMore(Word).separatedBy(Comma ~ optional(Space)) }
   def Digits = rule { capture(oneOrMore(CharPredicate.Digit)) ~> ((n) => n)}
   def Phrase = rule { capture(oneOrMore(CharPredicate.AlphaNum ++ ' ' ++ '-' ++ '\'' ++ '&' ++ '.' ++ '_' ++ '/' ++ ':')) ~> ((n) => n)}
 
