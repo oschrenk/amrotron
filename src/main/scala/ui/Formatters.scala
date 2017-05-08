@@ -44,10 +44,10 @@ object Formatters {
     }
     val description = t.details match {
       case Sepa(_, _, _, _, Some(text)) => s" // $text"
-      case Fee(_, description) => s" // $description"
+      case Fee(_, d) => s" // $d"
       case _ => ""
     }
-    val tags = t.tags.map(tag => cyan(s"#$tag")).mkString(" ")
+    val tags = t.tags.map(tag => c.cyan(s"#$tag")).mkString(" ")
     val message = direction match {
       case Incoming => s"Got ${green(amount.toString())}$currency from $target $tags$description"
       case Outgoing => t.details match {
