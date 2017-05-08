@@ -7,28 +7,38 @@ import rules.Taxes
 
 import scala.Console.{GREEN, RED, RESET, CYAN}
 
+trait Colorizer {
+  def red(s: String): String
+  def green(s: String): String
+  def cyan(s: String): String
+}
+class Rainbow extends Colorizer {
+  def red(s: String): String = s"$RESET$RED$s$RESET"
+  def green(s: String): String =  s"$RESET$GREEN$s$RESET"
+  def cyan(s: String): String =  s"$RESET$CYAN$s$RESET"
+}
+class Bland extends Colorizer {
+  def red(s: String): String = s
+  def green(s: String): String = s
+  def cyan(s: String): String = s
+}
+
 object Formatters {
 
-  def from(format: String): (Transaction, Map[String, String]) => String = format match {
+  lazy val rainbow = new Rainbow
+  lazy val bland = new Bland
+
+  def from(format: String): (Map[String, String], Transaction) => String = format match {
     case "csv" => csv
     case "string" => string
-    case _ => pretty
+    case "no-color" => pretty(bland)
+    case _ => pretty(rainbow)
   }
 
-  private def red(s: String) = {
-    s"$RESET$RED$s$RESET"
-  }
-  private def green(s: String) = {
-    s"$RESET$GREEN$s$RESET"
-  }
-
-  private def cyan(s: String) = {
-    s"$RESET$CYAN$s$RESET"
-  }
 
 
   private val DayFormatter = DateTimeFormatter.ofPattern("EEE, d. MMM")
-  val pretty: (Transaction, Map[String, String]) => String = (t: Transaction, addressbook: Map[String, String]) => {
+  val pretty: Colorizer => ((Map[String, String], Transaction) => String) = (c: Colorizer) => (addressbook: Map[String, String], t: Transaction) => {
     val direction = Direction(t.amount)
     val amount = t.amount
     val day = t.date.format(DayFormatter)
@@ -49,17 +59,17 @@ object Formatters {
     }
     val tags = t.tags.map(tag => c.cyan(s"#$tag")).mkString(" ")
     val message = direction match {
-      case Incoming => s"Got ${green(amount.toString())}$currency from $target $tags$description"
+      case Incoming => s"Got ${c.green(amount.toString())}$currency from $target $tags$description"
       case Outgoing => t.details match {
-        case CashPoint(_,_,_) => s"Withdrew ${red((-amount).toString())}$currency to $target $tags$description"
-        case _ => s"Paid ${red((-amount).toString())} $currency to $target $tags$description"
+        case CashPoint(_,_,_) => s"Withdrew ${c.red((-amount).toString())}$currency to $target $tags$description"
+        case _ => s"Paid ${c.red((-amount).toString())} $currency to $target $tags$description"
       }
     }
 
     s"$day: $message"
   }
 
-  val csv: (Transaction, Map[String, String]) => String = (t: Transaction, addressbook: Map[String, String]) => {
+  val csv: (Map[String, String], Transaction) => String = (addressbook: Map[String, String], t: Transaction) => {
     def quote(s: String) = { "\"" + s + "\"" }
     val account = quote(t.account)
     val amount = quote(t.amount.toString())
@@ -72,7 +82,7 @@ object Formatters {
     s"$account,$amount,$deductable,$tax,$tags"
   }
 
-  val string: (Transaction, Map[String, String]) => String = (t: Transaction, addressbook: Map[String, String]) => {
+  val string: (Map[String, String], Transaction) => String = (addressbook: Map[String, String], t: Transaction) => {
     s"$t"
   }
 

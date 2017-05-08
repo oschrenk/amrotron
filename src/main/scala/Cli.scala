@@ -96,7 +96,7 @@ object Cli extends App with LazyLogging {
         parsedRows.map{ parsedRow =>
           transformer.apply(parsedRow)
         }.foreach{transaction =>
-          println(formatter(transaction, addresses))
+          println(formatter(addresses, transaction))
         }
       }
     case None => ()
