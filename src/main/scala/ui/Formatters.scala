@@ -43,6 +43,7 @@ object Formatters {
     }
     val description = t.details match {
       case Sepa(_, _, _, _, Some(text)) => s" // $text"
+      case Fee(_, description) => s" // $description"
       case _ => ""
     }
     val tags = t.tags.map(tag => cyan(s"#$tag")).mkString(" ")
