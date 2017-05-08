@@ -33,11 +33,10 @@ object Details {
     }
   }
 
-
   private def parsePositional(raw: String, Prefix: String, KnownKeys: List[String]): Map[String, String] = {
     val positions: List[(String, Int)] = KnownKeys.map(key => (key, raw.indexOf(key))).filter{
       case (_, pos) => pos >= 0
-    }.sortBy(_._2) :+ ("end", raw.length)
+    }.sortBy(_._2) :+ (("end", raw.length))
 
     positions.sliding(2).map{ pair =>
       val left = pair.head
