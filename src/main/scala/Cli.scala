@@ -3,12 +3,10 @@ import java.nio.file.{Files, Path, Paths}
 
 import com.typesafe.scalalogging.LazyLogging
 import model.{ParsedRow, Row}
-import org.parboiled2.{ErrorFormatter, _}
-import rules.{DslParser, Transformer}
+import rules.{Rules, Transformer}
 import ui.Formatters
 
 import scala.io.Source
-import scala.util.{Failure, Success}
 
 case class Config(
   input: Seq[File] = Nil,
@@ -45,23 +43,7 @@ object Cli extends App with LazyLogging {
       }
 
       // read rules
-      val fmt = new ErrorFormatter(showTraces = true)
-      val rules = Source.fromFile(config.rules.toFile.getCanonicalFile, "utf-8").getLines.map{ line =>
-        // comments
-        if (line.startsWith("#") || line.trim.isEmpty) {
-          None
-        } else {
-          val dslParser = new DslParser(line)
-          dslParser.InputLine.run() match {
-            case Success(rule) => Some(rule)
-            case Failure(e: ParseError) =>
-              println(s"Invalid expression: ${dslParser.formatError(e, fmt)}")
-              throw new IllegalArgumentException("Error parsing rules")
-            case Failure(e) =>
-              throw new IllegalArgumentException("Error parsing rules")
-          }
-        }
-      }.flatten.toSeq
+      val rules = Rules.load(config.rules.toFile.getCanonicalFile)
       val transformer = new Transformer(rules)
 
       // read addressbook

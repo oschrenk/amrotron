@@ -2,6 +2,35 @@ package rules
 
 import model.{ParsedRow, Transaction}
 
+import java.io.File
+
+import org.parboiled2.{ErrorFormatter, ParseError}
+import scala.io.Source
+import scala.util.{Failure, Success}
+
+object Rules {
+
+  val fmt = new ErrorFormatter(showTraces = true)
+  def load(file: File): Seq[Rule] = {
+    Source.fromFile(file, "utf-8").getLines.map{ line =>
+      // comments
+      if (line.startsWith("#") || line.trim.isEmpty) {
+        None
+      } else {
+        val dslParser = new DslParser(line)
+        dslParser.InputLine.run() match {
+          case Success(rule) => Some(rule)
+          case Failure(e: ParseError) =>
+            println(s"Invalid expression: ${dslParser.formatError(e, fmt)}")
+            throw new IllegalArgumentException("Error parsing rules")
+          case Failure(e) =>
+            throw new IllegalArgumentException("Error parsing rules")
+        }
+      }
+    }.flatten.toSeq
+  }
+}
+
 case class Rule(tags: Seq[String], predicate: Predicate)
 
 class Transformer(rules: Seq[Rule])  {
