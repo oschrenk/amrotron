@@ -42,14 +42,15 @@ object Cli extends App with LazyLogging {
         Files.createFile(config.addressbook)
       }
 
-      // read config files
+      // configuration
       val rules = Rules.load(config.rules.toFile.getCanonicalFile)
       val transformer = new Transformer(rules)
       val addresses = Addressbook.load(config.addressbook.toFile.getCanonicalFile)
+      val formatter = Formatters.from(config.format)
 
       // TODO read and parse only if success, transform and format
       // read and transform input
-      config.input.foreach{ file =>
+      val transactions = config.input.map{ file =>
         val lines = Source.fromFile(file.getCanonicalFile, "utf-8").getLines.toSeq
 
         // read lines
@@ -60,13 +61,13 @@ object Cli extends App with LazyLogging {
         val (parsedErrors, parsedRows) = ParsedRow.parse(rawRows)
         parsedErrors.foreach(e => logger.error(s"malformed row: $e"))
 
-        // transform
-        val formatter = Formatters.from(config.format)
         parsedRows.map{ parsedRow =>
           transformer.apply(parsedRow)
-        }.foreach{transaction =>
-          println(formatter(addresses, transaction))
         }
+      }.flatten
+
+      transactions.foreach { transaction =>
+        println(formatter(addresses, transaction))
       }
     case None => ()
   }
