@@ -3,7 +3,7 @@ import java.nio.file.{Files, Path, Paths}
 
 import com.typesafe.scalalogging.LazyLogging
 import model.{ParsedRow, Row}
-import rules.{Rules, Transformer}
+import rules.{Addressbook, Rules, Transformer}
 import ui.Formatters
 
 import scala.io.Source
@@ -42,20 +42,10 @@ object Cli extends App with LazyLogging {
         Files.createFile(config.addressbook)
       }
 
-      // read rules
+      // read config files
       val rules = Rules.load(config.rules.toFile.getCanonicalFile)
       val transformer = new Transformer(rules)
-
-      // read addressbook
-      val posssibleAddresses = Source.fromFile(config.addressbook.toFile.getCanonicalFile, "utf-8").getLines.map { line =>
-        val values =line.split("=")
-        val iban = values.head.toUpperCase()
-        val description = values.tail.head
-        Map(iban -> description)
-      }
-      val addresses: Map[String, String]  =
-        if (posssibleAddresses.nonEmpty) posssibleAddresses.reduce(_ ++ _)  else Map.empty
-      logger.info(s"${addresses.size} address book entries")
+      val addresses = Addressbook.load(config.addressbook.toFile.getCanonicalFile)
 
       // TODO read and parse only if success, transform and format
       // read and transform input
