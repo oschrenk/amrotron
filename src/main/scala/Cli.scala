@@ -75,9 +75,6 @@ object Cli extends App with LazyLogging {
         if (posssibleAddresses.nonEmpty) posssibleAddresses.reduce(_ ++ _)  else Map.empty
       logger.info(s"${addresses.size} address book entries")
 
-      // print config
-      println(config)
-
       // TODO read and parse only if success, transform and format
       // read and transform input
       config.input.foreach{ file =>
