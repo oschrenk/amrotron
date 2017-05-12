@@ -2,7 +2,7 @@ import java.io.File
 import java.nio.file.{Files, Path, Paths}
 
 import com.typesafe.scalalogging.LazyLogging
-import model.{ParsedRow, Row}
+import model.{ParsedRow, Row, Transaction}
 import rules.{Addressbook, Rules, Transformer}
 import ui.Formatters
 
@@ -10,7 +10,8 @@ import scala.io.Source
 
 case class Config(
   input: Seq[File] = Nil,
-  format: String = "default"
+  format: String = "default",
+  showStats: Boolean = false
 ) {
   private val HomeDir = Paths.get(System.getProperty("user.home"))
   val home: Path = HomeDir.resolve(".amrotron")
@@ -23,9 +24,11 @@ object Cli extends App with LazyLogging {
   val parser = new scopt.OptionParser[Config]("amrotron") {
     head("amrotron", "1.x")
 
-
     opt[String]('f', "format")
       .action((f, c) => c.copy(format = f))
+
+    opt[Unit]('s', "show-stats")
+      .action((_, c) => c.copy(showStats = true))
 
     arg[File]("<file>...")
       .unbounded()
@@ -35,6 +38,9 @@ object Cli extends App with LazyLogging {
 
   parser.parse(args, Config()) match {
     case Some(config) =>
+
+      println(config)
+
       if (Files.notExists(config.home)) {
         logger.info("Creating empty rules")
         Files.createDirectories(config.home)
@@ -69,6 +75,26 @@ object Cli extends App with LazyLogging {
       transactions.foreach { transaction =>
         println(formatter(addresses, transaction))
       }
-    case None => ()
+      if (config.showStats) {
+        val t = transactions
+          .groupBy(_.tags)
+          .map{ case (tags, trans) =>
+            tags.map(t => (t, trans))
+          }.flatten
+        val perTag: Map[String, Seq[Transaction]] =
+          t.foldLeft(Map.empty[String, Seq[Transaction]]) { (a, b) =>
+            if (a.contains(b._1)) {
+              a.updated(b._1, a(b._1) ++ b._2)
+            } else {
+              a ++ Map(b)
+            }
+          }
+          val stats = perTag.map { case (k, v) ⇒ k → v.size }
+          stats.toSeq.sortBy{ case  (k,v) => (k,v)}
+            .foreach {case (k, v) => printf("%3d %s\n", v, k)}
+          println("---")
+          printf("%3d\n", stats.values.sum)
+      }
+      case None => ()
   }
 }
