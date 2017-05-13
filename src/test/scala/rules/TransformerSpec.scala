@@ -14,7 +14,7 @@ class TransformerSpec extends FlatSpec with Matchers {
     val rule = rules.Rule(List("foo"), predicate)
     val transfomer = new Transformer(List(rule))
     val t = transfomer.apply(row)
-    t.tags shouldBe List("foo")
+    t.tags shouldBe Set("foo")
   }
 
 }
