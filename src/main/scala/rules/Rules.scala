@@ -42,7 +42,7 @@ class Transformer(rules: Seq[Rule])  {
     val currency = row.currency
     val details = row.details
     val hash = row.hash
-    Transaction(date, account, currency, amount, details, hash, Nil)
+    Transaction(date, account, currency, amount, details, hash, Set.empty)
   }
   def apply(row: ParsedRow): Transaction = {
     rules.foldLeft(from(row)) { (t, rule) =>

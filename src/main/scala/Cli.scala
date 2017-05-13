@@ -11,7 +11,8 @@ import scala.io.Source
 case class Config(
   input: Seq[File] = Nil,
   format: String = "default",
-  showStats: Boolean = false
+  showStats: Boolean = false,
+  tags: Set[String] = Set.empty
 ) {
   private val HomeDir = Paths.get(System.getProperty("user.home"))
   val home: Path = HomeDir.resolve(".amrotron")
@@ -21,6 +22,9 @@ case class Config(
 
 object Cli extends App with LazyLogging {
 
+  implicit val weekDaysRead: scopt.Read[Set[String]] =
+    scopt.Read.reads(s => s.split(',').map(_.trim).toSet)
+
   val parser = new scopt.OptionParser[Config]("amrotron") {
     head("amrotron", "1.x")
 
@@ -29,6 +33,9 @@ object Cli extends App with LazyLogging {
 
     opt[Unit]('s', "show-stats")
       .action((_, c) => c.copy(showStats = true))
+
+    opt[Set[String]]('t', "tags").valueName("<tag1>,<tag2>...").action( (x,c) =>
+    c.copy(tags = x) ).text("tags to include")
 
     arg[File]("<file>...")
       .unbounded()
@@ -72,11 +79,15 @@ object Cli extends App with LazyLogging {
         }
       }.flatten
 
-      transactions.foreach { transaction =>
+      val whitelist = config.tags
+      val filteredTransactions = transactions.filter{t =>
+        whitelist.intersect(t.tags).nonEmpty
+      }
+      filteredTransactions.foreach { transaction =>
         println(formatter(addresses, transaction))
       }
       if (config.showStats) {
-        val stats = Stats.from(transactions)
+        val stats = Stats.from(filteredTransactions)
         stats.foreach { case (tag, count, total, average) =>
           println(s"$tag")
           println(s"  $count $total $average")
