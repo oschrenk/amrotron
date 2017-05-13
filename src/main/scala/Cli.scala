@@ -2,7 +2,7 @@ import java.io.File
 import java.nio.file.{Files, Path, Paths}
 
 import com.typesafe.scalalogging.LazyLogging
-import model.{ParsedRow, Row, Transaction}
+import model.{ParsedRow, Row, Stats}
 import rules.{Addressbook, Rules, Transformer}
 import ui.Formatters
 
@@ -76,24 +76,11 @@ object Cli extends App with LazyLogging {
         println(formatter(addresses, transaction))
       }
       if (config.showStats) {
-        val t = transactions
-          .groupBy(_.tags)
-          .map{ case (tags, trans) =>
-            tags.map(t => (t, trans))
-          }.flatten
-        val perTag: Map[String, Seq[Transaction]] =
-          t.foldLeft(Map.empty[String, Seq[Transaction]]) { (a, b) =>
-            if (a.contains(b._1)) {
-              a.updated(b._1, a(b._1) ++ b._2)
-            } else {
-              a ++ Map(b)
-            }
-          }
-          val stats = perTag.map { case (k, v) ⇒ k → v.size }
-          stats.toSeq.sortBy{ case  (k,v) => (k,v)}
-            .foreach {case (k, v) => printf("%3d %s\n", v, k)}
-          println("---")
-          printf("%3d\n", stats.values.sum)
+        val stats = Stats.from(transactions)
+        stats.foreach { case (tag, count, total, average) =>
+          println(s"$tag")
+          println(s"  $count $total $average")
+        }
       }
       case None => ()
   }
