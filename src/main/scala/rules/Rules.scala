@@ -2,7 +2,7 @@ package rules
 
 import model.{ParsedRow, Transaction}
 
-import java.io.File
+import java.nio.file.{Files, Path}
 
 import org.parboiled2.{ErrorFormatter, ParseError}
 import scala.io.Source
@@ -11,23 +11,28 @@ import scala.util.{Failure, Success}
 object Rules {
 
   val fmt = new ErrorFormatter(showTraces = true)
-  def load(file: File): Seq[Rule] = {
-    Source.fromFile(file, "utf-8").getLines.map{ line =>
-      // comments
-      if (line.startsWith("#") || line.trim.isEmpty) {
-        None
-      } else {
-        val dslParser = new DslParser(line)
-        dslParser.InputLine.run() match {
-          case Success(rule) => Some(rule)
-          case Failure(e: ParseError) =>
-            println(s"Invalid expression: ${dslParser.formatError(e, fmt)}")
-            throw new IllegalArgumentException("Error parsing rules")
-          case Failure(e) =>
-            throw new IllegalArgumentException("Error parsing rules")
+  def load(path: Path): Seq[Rule] = {
+    if (Files.notExists(path)) {
+      Seq.empty
+    } else {
+      val file = path.toFile.getCanonicalFile
+      Source.fromFile(file, "utf-8").getLines.map{ line =>
+        // comments
+        if (line.startsWith("#") || line.trim.isEmpty) {
+          None
+        } else {
+          val dslParser = new DslParser(line)
+          dslParser.InputLine.run() match {
+            case Success(rule) => Some(rule)
+            case Failure(e: ParseError) =>
+              println(s"Invalid expression: ${dslParser.formatError(e, fmt)}")
+              throw new IllegalArgumentException("Error parsing rules")
+            case Failure(e) =>
+              throw new IllegalArgumentException("Error parsing rules")
+          }
         }
-      }
-    }.flatten.toSeq
+      }.flatten.toSeq
+    }
   }
 }
 
