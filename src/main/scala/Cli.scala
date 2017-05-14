@@ -1,5 +1,5 @@
 import java.io.File
-import java.nio.file.{Files, Path, Paths}
+import java.nio.file.{Path, Paths}
 
 import com.typesafe.scalalogging.LazyLogging
 import model.{ParsedRow, Row, Stats}
@@ -46,19 +46,10 @@ object Cli extends App with LazyLogging {
   parser.parse(args, Config()) match {
     case Some(config) =>
 
-      println(config)
-
-      if (Files.notExists(config.home)) {
-        logger.info("Creating empty rules")
-        Files.createDirectories(config.home)
-        Files.createFile(config.rules)
-        Files.createFile(config.addressbook)
-      }
-
       // configuration
-      val rules = Rules.load(config.rules.toFile.getCanonicalFile)
+      val rules = Rules.load(config.rules)
       val transformer = new Transformer(rules)
-      val addresses = Addressbook.load(config.addressbook.toFile.getCanonicalFile)
+      val addresses = Addressbook.load(config.addressbook)
       val formatter = Formatters.from(config.format)
 
       // TODO read and parse only if success, transform and format
