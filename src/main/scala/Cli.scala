@@ -66,11 +66,8 @@ object Cli extends App with LazyLogging {
         }
       }.flatten
 
-      val filteredTransactions =
-        if (config.tags.isEmpty)
-          transactions
-        else
-          transactions.filter{t => config.tags.intersect(t.tags).nonEmpty}
+      val intersectFilter = Filters.intersectingTags(config.tags)
+      val filteredTransactions = transactions.filter(intersectFilter)
 
       filteredTransactions.foreach { transaction =>
         println(formatter(addresses, transaction))
@@ -102,4 +99,12 @@ object Cli extends App with LazyLogging {
       }
     }
   }
+}
+
+object Filters {
+
+  val intersectingTags: Set[String] => Transaction => Boolean = (tags: Set[String]) => (transaction: Transaction) => {
+    tags.nonEmpty && tags.intersect(transaction.tags).nonEmpty
+  }
+
 }
