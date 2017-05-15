@@ -1,12 +1,14 @@
 import java.io.File
+import java.io.FileNotFoundException
 import java.nio.file.{Path, Paths}
 
 import com.typesafe.scalalogging.LazyLogging
-import model.{ParsedRow, Row, Stats}
+import model.{ParsedRow, Row, Stats, Transaction}
 import rules.{Addressbook, Rules, Transformer}
 import ui.Formatters
 
 import scala.io.Source
+import scala.util.{Failure, Success, Try}
 
 case class Config(
   input: Seq[File] = Nil,
@@ -55,18 +57,14 @@ object Cli extends App with LazyLogging {
       // TODO read and parse only if success, transform and format
       // read and transform input
       val transactions = config.input.map{ file =>
-        val lines = Source.fromFile(file.getCanonicalFile, "utf-8").getLines.toSeq
-
-        // read lines
-        val (rawErrors, rawRows) = Row.parse(lines)
-        rawErrors.foreach(e => logger.error(s"malformed line: $e"))
-
-        // parse details and create types
-        val (parsedErrors, parsedRows) = ParsedRow.parse(rawRows)
-        parsedErrors.foreach(e => logger.error(s"malformed row: $e"))
-
-        parsedRows.map{ parsedRow =>
-          transformer.apply(parsedRow)
+        loadTransactions(transformer, file) match {
+          case Success(t) => t
+          case Failure(e: FileNotFoundException) =>
+            System.err.println(s"File $file not found.")
+            Seq.empty
+          case Failure(e) =>
+            System.err.println(s"Error: $e")
+            Seq.empty
         }
       }.flatten
 
@@ -87,5 +85,23 @@ object Cli extends App with LazyLogging {
         }
       }
       case None => ()
+  }
+
+  def loadTransactions(transformer: Transformer, file: File): Try[Seq[Transaction]] = {
+    Try{
+      val lines = Source.fromFile(file.getCanonicalFile, "utf-8").getLines.toSeq
+
+      // read lines
+      val (rawErrors, rawRows) = Row.parse(lines)
+      rawErrors.foreach(e => logger.error(s"malformed line: $e"))
+
+      // parse details and create types
+      val (parsedErrors, parsedRows) = ParsedRow.parse(rawRows)
+      parsedErrors.foreach(e => logger.error(s"malformed row: $e"))
+
+      parsedRows.map{ parsedRow =>
+        transformer.apply(parsedRow)
+      }
+    }
   }
 }
