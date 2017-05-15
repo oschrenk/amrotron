@@ -54,8 +54,6 @@ object Cli extends App with LazyLogging {
       val addresses = Addressbook.load(config.addressbook)
       val formatter = Formatters.from(config.format)
 
-      // TODO read and parse only if success, transform and format
-      // read and transform input
       val transactions = config.input.map{ file =>
         loadTransactions(transformer, file) match {
           case Success(t) => t
