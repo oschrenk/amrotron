@@ -24,7 +24,7 @@ case class Config(
 
 object Cli extends App with LazyLogging {
 
-  implicit val weekDaysRead: scopt.Read[Set[String]] =
+  implicit val tagsRead: scopt.Read[Set[String]] =
     scopt.Read.reads(s => s.split(',').map(_.trim).toSet)
 
   val parser = new scopt.OptionParser[Config]("amrotron") {
