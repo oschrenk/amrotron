@@ -31,7 +31,7 @@ libraryDependencies ++= {
   Seq(
     "com.nrinaudo" %% "kantan.csv" % kantanV,
     "com.nrinaudo" %% "kantan.csv-java8" % kantanV,
-    "com.typesafe.scala-logging" %% "scala-logging" % "3.5.0",
+    "com.typesafe.scala-logging" %% "scala-logging" % "3.7.2",
     "ch.qos.logback" % "logback-classic" % "1.2.3",
     "org.parboiled" %% "parboiled" % "2.1.4",
     "com.github.scopt" %% "scopt" % "3.7.0",
