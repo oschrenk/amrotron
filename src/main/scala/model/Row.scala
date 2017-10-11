@@ -9,7 +9,7 @@ object Row {
   implicit val rowDecoder: RowDecoder[Row] = RowDecoder.decoder(0, 1, 2, 3, 4, 6, 7)(Row.apply)
 
   def parse(line: String): Either[ReadError, Row] = {
-    val iterator = line.asCsvReader[Row](rfc.withColumnSeparator('\t').withoutHeader)
+    val iterator = line.asCsvReader[Row](rfc.withCellSeparator('\t').withoutHeader)
     val result = iterator.toSeq.head
     result match {
       case Success(row) => Right(row)
