@@ -34,7 +34,7 @@ libraryDependencies ++= {
     "com.typesafe.scala-logging" %% "scala-logging" % "3.5.0",
     "ch.qos.logback" % "logback-classic" % "1.2.3",
     "org.parboiled" %% "parboiled" % "2.1.4",
-    "com.github.scopt" %% "scopt" % "3.5.0",
+    "com.github.scopt" %% "scopt" % "3.7.0",
     "org.scalatest" %% "scalatest" % "3.0.3" % "test"
   )
 }
