@@ -4,7 +4,7 @@ version := "0.1-SNAPSHOT"
 
 organization := "com.oschrenk"
 
-scalaVersion := "2.12.3"
+scalaVersion := "2.12.4"
 
 scalacOptions ++= Seq(
   "-target:jvm-1.8",
