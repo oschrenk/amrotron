@@ -27,7 +27,7 @@ test in assembly := {}
 mainClass in assembly := Some("Cli")
 
 libraryDependencies ++= {
-  val kantanV = "0.2.1"
+  val kantanV = "0.3.0"
   Seq(
     "com.nrinaudo" %% "kantan.csv" % kantanV,
     "com.nrinaudo" %% "kantan.csv-java8" % kantanV,
